@@ -16,18 +16,19 @@ class AdapterManager(QObject):
         self.lifelong_adapters = []
         self.lifelong_threads = {}
 
-        self.terminate_adapter = None
+        self.terminate_adapter = self.start_adapter = None
 
         self.init_workers()
         self.start_all()
 
     def init_workers(self):
-        self.lifelong_adapters.append(MonitorAdapter(1000, self.logic))
+        self.lifelong_adapters.append(MonitorAdapter(self.logic))
         # self.lifelong_adapters.append(TopMostAdapter(100, self.gui))
         # self.lifelong_adapters.append(DatabaseAdapter(logic, 2000))
         # self.lifelong_adapters.append(NetworkAdapter(logic, 5000))
 
         self.terminate_adapter = TerminateAdapter(self.logic)
+        self.start_adapter = StartStudentmainAdapter(self.logic)
 
     def start_all(self):
         for adapter in self.lifelong_adapters:
@@ -51,6 +52,10 @@ class AdapterManager(QObject):
 
     def terminate_studentmain(self):
         self.terminate_adapter.start()
+
+    def start_studentmain(self):
+        self.start_adapter.start()
+
 
 
 class BaseAdapterInterface:
@@ -81,11 +86,11 @@ class BaseAdapterInterface:
 class MonitorAdapter(QObject, BaseAdapterInterface):
     changed = Signal(bool)
 
-    def __init__(self, interval, logic):
+    def __init__(self, logic):
         super().__init__()
         self.logic = logic
         self.timer = QTimer(self)
-        self.timer.setInterval(interval)
+        self.timer.setInterval(1000)
         self.timer.timeout.connect(self.run_task)
         self.last_result = None
 
@@ -120,9 +125,7 @@ class MonitorAdapter(QObject, BaseAdapterInterface):
 #     def run_task(self):
 #         pass
 
-class TerminateAdapter(QObject):
-    change = Signal(bool)
-
+class TerminateAdapter:
     def __init__(self, logic):
         super().__init__()
         self.logic = logic
@@ -140,4 +143,13 @@ class TerminateAdapter(QObject):
 
     def check_state(self):
         return self.logic.get_studentmain_state()
+
+class StartStudentmainAdapter:
+    def __init__(self, logic):
+        super().__init__()
+        self.logic = logic
+
+    def start(self):
+        return self.logic.start_studentmain()
+
 
