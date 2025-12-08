@@ -311,6 +311,14 @@ class JIVLogic:
     # else:
     #     print("cannot open process")
 
+    @staticmethod
+    def is_suspended(pid):
+        try:
+            p = psutil.Process(pid)
+            return p.status() == psutil.STATUS_STOPPED
+        except psutil.NoSuchProcess:
+            return False
+
     def get_current_version(self):
         return self.config.VERSION
 
