@@ -2,6 +2,7 @@
 # from threading import Thread
 
 from PySide6.QtCore import QObject, Signal, QTimer, QThread
+from Jiv_enmus import SuspendState
 
 
 class AdapterManager(QObject):
@@ -16,18 +17,19 @@ class AdapterManager(QObject):
         self.lifelong_adapters = []
         self.lifelong_threads = {}
 
-        self.terminate_adapter = self.start_adapter = None
+        self.terminate_adapter = self.start_adapter = self.suspend_studentmain_adapter = None
 
         self.init_workers()
         self.start_all()
 
     def init_workers(self):
         self.lifelong_adapters.append(MonitorAdapter(self.logic))
-        # self.lifelong_adapters.append(TopMostAdapter(100, self.gui))
+        self.lifelong_adapters.append(SuspendMonitorAdapter(self.logic))
         # self.lifelong_adapters.append(DatabaseAdapter(logic, 2000))
         # self.lifelong_adapters.append(NetworkAdapter(logic, 5000))
 
         self.terminate_adapter = TerminateAdapter(self.logic)
+        self.suspend_studentmain_adapter = SuspendStudentmainAdapter(self.logic)
         self.start_adapter = StartStudentmainAdapter(self.logic)
 
     def start_all(self):
@@ -55,6 +57,9 @@ class AdapterManager(QObject):
 
     def start_studentmain(self):
         self.start_adapter.start()
+
+    def suspend_resume_studentmain(self):
+        self.suspend_studentmain_adapter.start()
 
 
 class BaseAdapterInterface:
@@ -89,7 +94,7 @@ class MonitorAdapter(QObject, BaseAdapterInterface):
         super().__init__()
         self.logic = logic
         self.timer = QTimer(self)
-        self.timer.setInterval(750)
+        self.timer.setInterval(600)
         self.timer.timeout.connect(self.run_task)
         self.last_result = None
 
@@ -111,13 +116,13 @@ class MonitorAdapter(QObject, BaseAdapterInterface):
 
 
 class SuspendMonitorAdapter(QObject, BaseAdapterInterface):
-    changed = Signal(bool)
+    changed = Signal(SuspendState)
 
     def __init__(self, logic):
         super().__init__()
         self.logic = logic
         self.timer = QTimer(self)
-        self.timer.setInterval(750)
+        self.timer.setInterval(600)
         self.timer.timeout.connect(self.run_task)
         self.last_result = None
 
@@ -134,15 +139,17 @@ class SuspendMonitorAdapter(QObject, BaseAdapterInterface):
             self.last_result = state
             self.changed.emit(state)
 
-    def check_state(self) -> bool or None:
+    def check_state(self):
         """
-        :return: Bool, None
+        :return: Studentmain suspend state
         """
         pid = self.logic.get_pid_form_process_name('studentmain.exe')
         if pid is None:
-            print('studentmain not found')
-            return None
-        return self.logic.is_suspended(pid)
+            return SuspendState.NOT_FOUND
+        if self.logic.is_suspended(pid):
+            return SuspendState.SUSPENDED
+        else:
+            return SuspendState.RUNNING
 
 
 # class UpdateAdapter(QObject, BaseAdapterInterface):
@@ -203,9 +210,9 @@ class SuspendStudentmainAdapter:
 
         suspend_state = self.logic.is_suspended(pid)
         if suspend_state:
-            self.suspend(pid)
-        else:
             self.resume(pid)
+        else:
+            self.suspend(pid)
 
     def suspend(self, pid):
         self.logic.suspend_process(pid)
