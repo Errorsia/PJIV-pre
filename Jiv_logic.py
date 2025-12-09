@@ -56,12 +56,33 @@ class JIVLogic:
 
     @staticmethod
     def privilege_escalation():
+        """
+        Try to rerun script as admin
+        Uses ShellExecuteW with "runas"
+        :return: True if elevation succeeded, False otherwise
+        """
         result = ctypes.windll.shell32.ShellExecuteW(
             None, 'runas', sys.executable, ' '.join(sys.argv), None, 1
         )
         return result > 32
 
     def get_system_info(self):
+        """
+        Collect system information in a dictionary.
+
+        system: OS name (Windows)
+        release: OS release
+        version: OS build version
+        major: major version number
+        minor: minor version number
+        build: build number
+        platform: platform ID
+        service_pack: installed service pack
+        architecture: system architecture (64bit, 32bit)
+        hotfixes: list of installed hotfixes
+        :return: dictionary with system details
+        """
+
         win_ver = sys.getwindowsversion()
         system_info = {
             "system": platform.system(),  # Windows
@@ -79,6 +100,12 @@ class JIVLogic:
 
     @staticmethod
     def get_hotfixes_winapi():
+        """
+        Retrieve installed Windows hotfixes using the Update API.
+
+        Searches update history, extracts KB identifiers, install dates, and result codes.
+        :return: list of dictionaries with hotfix details
+        """
         update_session = win32com.client.Dispatch("Microsoft.Update.Session")
         update_searcher = update_session.CreateUpdateSearcher()
         history_count = update_searcher.GetTotalHistoryCount()
@@ -113,6 +140,12 @@ class JIVLogic:
 
     @staticmethod
     def read_registry_value(key_path, value_name):
+        """
+        Read a registry value from HKEY_LOCAL_MACHINE.
+
+        Tries both 32-bit and 64-bit views.
+        :return: value if found, otherwise None
+        """
         try:
             with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, key_path, 0,
                                 winreg.KEY_READ | winreg.KEY_WOW64_32KEY) as key:
@@ -191,6 +224,12 @@ class JIVLogic:
 
     @staticmethod
     def get_pid_form_process_name(process_name):
+        """
+        Get the PID of a process by name.
+
+        Iterates through running processes and compares names.
+        :return: PID if found, otherwise None
+        """
         process_iter = psutil.process_iter()
         for proc in process_iter:
             try:
@@ -225,7 +264,6 @@ class JIVLogic:
 
     @staticmethod
     def terminate_process(pid):
-
         # noinspection PyUnresolvedReferences
         h_process = win32api.OpenProcess(win32con.PROCESS_TERMINATE, False, pid)
         if not h_process:
@@ -310,6 +348,45 @@ class JIVLogic:
     #     CloseHandle(hProcess)
     # else:
     #     print("cannot open process")
+
+    @staticmethod
+    def is_suspended(pid):
+        """
+        whether the certain programme is suspended
+        :param pid: pid of programme
+        :return: whether the certain programme is suspended
+        """
+        try:
+            p = psutil.Process(pid)
+            return p.status() == psutil.STATUS_STOPPED
+        except psutil.NoSuchProcess:
+            return False
+
+    @staticmethod
+    def suspend_process(pid):
+        try:
+            p = psutil.Process(pid)
+            p.suspend()
+            return True
+        except psutil.NoSuchProcess:
+            print("Process not found")
+            return False
+        except PermissionError:
+            print('Permission Error in suspending')
+            return False
+
+    @staticmethod
+    def resume_process(pid):
+        try:
+            p = psutil.Process(pid)
+            p.resume()
+            return True
+        except psutil.NoSuchProcess:
+            print("Process not found")
+            return False
+        except PermissionError:
+            print('Permission Error in resuming')
+            return False
 
     def get_current_version(self):
         return self.config.VERSION

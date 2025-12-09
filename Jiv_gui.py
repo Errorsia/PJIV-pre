@@ -1,6 +1,8 @@
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import QMainWindow, QWidget, QLabel, QPushButton, QGridLayout, QVBoxLayout
 
+from Jiv_enmus import SuspendState
+
 
 class MainWindow(QMainWindow):
     close_event = Signal()
@@ -35,7 +37,7 @@ class MainWidget(QWidget):
     def __init__(self):
         super().__init__()
         self.studentmain_state = None
-        self.button1 = None
+        self.kill_run = self.suspend_resume = None
         self.label_studentmain_state = None
         self.adapter = None
         self.init_ui()
@@ -60,13 +62,13 @@ class MainWidget(QWidget):
 
         button_layout = QGridLayout()
 
-        self.button1 = QPushButton("Kill studentmain")
-        self.button1.clicked.connect(self.handle_studentmain)
+        self.kill_run = QPushButton("Kill studentmain")
+        self.kill_run.clicked.connect(self.handle_studentmain)
 
-        button2 = QPushButton("Test")
-        button2.clicked.connect(lambda: print('Test button'))
+        self.suspend_resume = QPushButton("Not detect")
+        self.suspend_resume.clicked.connect(self.handle_studentmain_suspend)
 
-        for i, btn in enumerate([self.button1, button2]):
+        for i, btn in enumerate([self.kill_run, self.suspend_resume]):
             btn.setMinimumHeight(50)
             button_layout.addWidget(btn, i // 2, i % 2)
             btn.setStyleSheet("""
@@ -101,6 +103,9 @@ class MainWidget(QWidget):
         match name:
             case 'MonitorAdapter':
                 self.set_studentmain_state(value)
+            case 'SuspendMonitorAdapter':
+                self.set_studentmain_suspend_state(value)
+
 
     def set_studentmain_state(self, state):
         status = "not running" if not state else "running"
@@ -115,7 +120,7 @@ class MainWidget(QWidget):
                                         border: 3px solid #cccccc;
                                         color: #E66926;   
                                         """)
-            self.button1.setText("Kill studentmain")
+            self.kill_run.setText("Kill studentmain")
         else:
             self.label_studentmain_state.setStyleSheet("""
                                         background-color: #D3FDE3; 
@@ -124,7 +129,7 @@ class MainWidget(QWidget):
                                         border: 3px solid #cccccc;
                                         color: #16DC2D;   
                                         """)
-            self.button1.setText("Run studentmain")
+            self.kill_run.setText("Run studentmain")
 
 
     def handle_studentmain(self):
@@ -132,3 +137,18 @@ class MainWidget(QWidget):
             self.adapter.terminate_studentmain()
         else:
             self.adapter.start_studentmain()
+
+    def set_studentmain_suspend_state(self, state):
+        match state:
+            case SuspendState.NOT_FOUND:
+                self.suspend_resume.setText('Not found')
+                self.suspend_resume.setDisabled(True)
+            case SuspendState.RUNNING:
+                self.suspend_resume.setText('Suspend')
+                self.suspend_resume.setEnabled(True)
+            case SuspendState.SUSPENDED:
+                self.suspend_resume.setText('Resume')
+
+    def handle_studentmain_suspend(self):
+        self.adapter.suspend_resume_studentmain()
+
