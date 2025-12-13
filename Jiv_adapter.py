@@ -292,52 +292,52 @@ class SuspendStudentmainAdapter:
         self.logic.resume_process(pid)
 
 
-# class RunTaskmgrAdapter(QObject):
-#     trigger_run = Signal()
-#     changed = Signal()
-#     request_top = Signal()
-#     finished = Signal()
-#
-#     def __init__(self, logic):
-#         super().__init__()
-#         # self.running = False
-#         # self.cnt = 0
-#         self.running = None
-#         self.cnt = None
-#         self.timer = None
-#         self.logic = logic
-#
-#     def start(self):
-#         self.running = False
-#         self.cnt = 0
-#         self.timer = QTimer(self)
-#
-#         self.timer.setInterval(100)
-#         self.timer.timeout.connect(self.is_taskmgr_alive)
-#
-#         self.trigger_run.connect(self.run_task)
-#
-#     def run_task(self):
-#         self.cnt = 0
-#         self.running = True
-#         self.logic.start_file("taskmgr")
-#         print("adapter.start called")
-#         self.timer.start()
-#         print('timer started')
-#
-#     def is_taskmgr_alive(self):
-#         print(f'cnt: {self.cnt}')
-#         self.cnt += 1
-#         if self.logic.get_process_state('taskmgr.exe'):
-#             self.request_top.emit()
-#             self.stop()
-#         if self.cnt >= 30: # 3s time out
-#             print("Find taskmgr Time out")
-#             self.stop()
-#
-#     def stop(self):
-#         self.running = False
-#         self.timer.stop()
-#
-#     def is_running(self):
-#         return self.running
+class RunTaskmgrAdapter(QObject):
+    trigger_run = Signal()
+    changed = Signal()
+    request_top = Signal()
+    finished = Signal()
+
+    def __init__(self, logic):
+        super().__init__()
+        # self.running = False
+        # self.cnt = 0
+        self.running = None
+        self.cnt = None
+        self.timer = None
+        self.logic = logic
+
+    def start(self):
+        self.running = False
+        self.cnt = 0
+        self.timer = QTimer(self)
+
+        self.timer.setInterval(100)
+        self.timer.timeout.connect(self.is_taskmgr_alive)
+
+        self.trigger_run.connect(self.run_task)
+
+    def run_task(self):
+        self.cnt = 0
+        self.running = True
+        self.logic.start_file("taskmgr")
+        print("adapter.start called")
+        self.timer.start()
+        print('timer started')
+
+    def is_taskmgr_alive(self):
+        print(f'cnt: {self.cnt}')
+        self.cnt += 1
+        if self.logic.get_process_state('taskmgr.exe'):
+            self.request_top.emit()
+            self.stop()
+        if self.cnt >= 30: # 3s time out
+            print("Find taskmgr Time out")
+            self.stop()
+
+    def stop(self):
+        self.running = False
+        self.timer.stop()
+
+    def is_running(self):
+        return self.running
