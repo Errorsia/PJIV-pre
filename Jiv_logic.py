@@ -219,16 +219,12 @@ class JIVLogic:
 
         elif state == 128:
             return False
-            # self.logger.warning(f'The process ({process_name}) not found (Return code {state})')
 
         elif state == 1:
             return False
-            # self.logger.warning(
-            # f'The process ({process_name}) could not be terminated (Return code {state})')
 
         else:
             return False
-            # self.logger.warning(f'Unknown Error (Return code {state})')
 
     @staticmethod
     def get_pid_form_process_name(process_name):
@@ -412,6 +408,7 @@ class JIVLogic:
         else:
             raise Exception("Unable to obtain the latest version information")
 
+        # WILL BE DELETE IN NEXT VERSION
         # tags_resp = requests.get(tags_url)
         # if tags_resp.status_code == 200:
         #     tags_data = tags_resp.json()

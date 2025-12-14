@@ -12,12 +12,19 @@ class ServiceManager:
         self.services = []
 
         self.threads = {}
+        self.hwnd = None
+
+        self.init_hwnd()
 
         self.init_services()
         self.start_all()
 
+    def init_hwnd(self):
+        self.hwnd = int(self.gui.winId())
+        print(f'Hwnd: {self.hwnd}')
+
     def init_services(self):
-        self.services.append(TopMostService(50, self.logic, self.gui))
+        self.services.append(TopMostService(50, self.logic, self.hwnd))
 
     def start_all(self):
         for service in self.services:
@@ -52,24 +59,22 @@ class BaseServiceInterface(ABC):
 
 
 class TopMostService(BaseServiceInterface):
-    def __init__(self, interval, logic, gui):
+    def __init__(self, interval, logic, hwnd):
         """
         :param interval: millisecond
-        :param logic:
-        :param gui:
+        :param logic: logic module
+        :param hwnd: hwnd of top window
         """
         super().__init__()
 
         self.stop_flag = threading.Event()
         self.interval = interval / 1000
         self.logic = logic
-        self.gui = gui
 
         self.run = True
-        self.hwnd = None
+        self.hwnd = hwnd
 
     def start(self):
-        self.init_hwnd()
         self.run_task()
 
     def stop(self):
@@ -97,7 +102,3 @@ class TopMostService(BaseServiceInterface):
     #         print(self.run)
     #         self.logic.set_window_top_most(self.hwnd)
     #         time.sleep(self.interval)
-
-    def init_hwnd(self):
-        self.hwnd = int(self.gui.winId())
-        print(f'Hwnd: {self.hwnd}')
