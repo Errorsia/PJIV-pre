@@ -66,7 +66,7 @@ class MainWidget(QWidget):
 
         self.tabs = [
             "Tools",
-            # "Settings",
+            "Settings",
             "Info"
         ]
 
@@ -131,6 +131,8 @@ class MainWidget(QWidget):
         self.pages = QStackedWidget()
         self.toolkit_page = ToolkitPage()
         self.pages.addWidget(self.toolkit_page)
+        self.settings_page = UpdatingPage()
+        self.pages.addWidget(self.settings_page)
         self.about_page = UpdatingPage()
         self.pages.addWidget(self.about_page)
 
