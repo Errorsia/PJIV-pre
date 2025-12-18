@@ -3,8 +3,8 @@
 
 from PySide6.QtCore import QObject, Signal, QTimer, QThread
 
-from Jiv_enmus import SuspendState
 import Jiv_build_config
+from Jiv_enmus import SuspendState
 
 
 class AdapterManager(QObject):
@@ -170,55 +170,6 @@ class MonitorAdapter(QObject, BaseAdapterInterface):
         return self.logic.get_process_state(Jiv_build_config.E_CLASSROOM_NAME)
 
 
-class RunTaskmgrAdapter(QObject):
-    trigger_run = Signal()
-    changed = Signal()
-    request_top = Signal()
-
-    def __init__(self, logic):
-        super().__init__()
-        # self.running = False
-        # self.cnt = 0
-        self.running = None
-        self.cnt = None
-        self.timer = None
-        self.logic = logic
-
-    def start(self):
-        self.running = False
-        self.cnt = 0
-        self.timer = QTimer(self)
-
-        self.timer.setInterval(100)
-        self.timer.timeout.connect(self.is_taskmgr_alive)
-
-        self.trigger_run.connect(self.run_task)
-
-    def run_task(self):
-        self.cnt = 0
-        self.running = True
-        self.logic.start_file("taskmgr")
-        print("adapter.start called")
-        self.timer.start()
-        print('timer started')
-
-    def is_taskmgr_alive(self):
-        self.cnt += 1
-        if self.logic.get_process_state('taskmgr.exe'):
-            self.request_top.emit()
-            self.stop()
-        if self.cnt >= 30:  # 3s time out
-            print("Find taskmgr Time out")
-            self.stop()
-
-    def stop(self):
-        self.running = False
-        self.timer.stop()
-
-    def is_running(self):
-        return self.running
-
-
 class SuspendMonitorAdapter(QObject, BaseAdapterInterface):
     changed = Signal(SuspendState)
 
@@ -256,20 +207,81 @@ class SuspendMonitorAdapter(QObject, BaseAdapterInterface):
             return SuspendState.RUNNING
 
 
-# class UpdateAdapter(QObject, BaseAdapterInterface):
-#     changed = Signal(str)
-#
-#     def __init__(self):
-#         super().__init__()
-#
-#     def start(self):
-#         pass
-#
-#     def stop(self):
-#         pass
-#
-#     def run_task(self):
-#         pass
+class RunTaskmgrAdapter(QObject):
+    trigger_run = Signal()
+    changed = Signal()
+    request_top = Signal()
+
+    def __init__(self, logic):
+        super().__init__()
+        # self.running = False
+        # self.cnt = 0
+        self.running = None
+        self.cnt = None
+        self.timer = None
+        self.logic = logic
+
+    def start(self):
+        self.running = False
+        self.cnt = 0
+        self.timer = QTimer(self)
+
+        self.timer.setInterval(100)
+        self.timer.timeout.connect(self.is_taskmgr_alive)
+
+        self.trigger_run.connect(self.run_task)
+
+    def run_task(self):
+        self.cnt = 0
+        self.running = True
+        self.logic.start_file("taskmgr")
+        print("adapter.start called")
+        self.timer.start()
+        # print('timer started')
+
+    def is_taskmgr_alive(self):
+        self.cnt += 1
+        if self.logic.get_process_state('taskmgr.exe'):
+            self.request_top.emit()
+            self.stop()
+        if self.cnt >= 30:  # 3s time out
+            print("Find taskmgr Time out")
+            self.stop()
+
+    def stop(self):
+        self.running = False
+        self.timer.stop()
+
+    def is_running(self):
+        return self.running
+
+
+class UpdateAdapter(QObject, BaseAdapterInterface):
+    ui_change = Signal()
+
+    def __init__(self, logic):
+        super().__init__()
+        self.running = None
+        self.logic = logic
+
+    def start(self):
+        self.running = False
+
+    def stop(self):
+        self.running = False
+
+    def run_task(self):
+        if self.running:
+            print('another getting update is running, exit')
+            return
+        self.running = True
+        ver = self.logic.check_update()
+        self.ui_change.emit(ver)
+        self.stop()
+
+    def is_running(self):
+        return self.running
+
 
 class TerminateAdapter:
     def __init__(self, logic):
