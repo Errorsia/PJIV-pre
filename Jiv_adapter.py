@@ -20,6 +20,7 @@ class AdapterManager(QObject):
         self.lifelong_objects = {}
 
         self.terminate_adapter = self.start_adapter = self.suspend_studentmain_adapter = self.run_taskmgr_adapter = None
+        self.update_adapter = None
 
         self.init_workers()
         self.start_all()
@@ -27,9 +28,11 @@ class AdapterManager(QObject):
     def init_workers(self):
         self.lifelong_adapters.append(MonitorAdapter(self.logic))
         self.lifelong_adapters.append(SuspendMonitorAdapter(self.logic))
-        self.lifelong_adapters.append(UpdateAdapter(self.logic))
         # self.lifelong_adapters.append(DatabaseAdapter(logic, 2000))
         # self.lifelong_adapters.append(NetworkAdapter(logic, 5000))
+
+        self.update_adapter = UpdateAdapter(self.logic)
+        self.lifelong_adapters.append(self.update_adapter)
 
         self.terminate_adapter = TerminateAdapter(self.logic)
         self.suspend_studentmain_adapter = SuspendStudentmainAdapter(self.logic)
@@ -115,6 +118,16 @@ class AdapterManager(QObject):
         #     "run_task",
         #     Qt.QueuedConnection
         # )
+
+    def get_update(self):
+        if self.update_adapter.is_running():
+            print("update adapter already running")
+            return
+
+        self.update_adapter.trigger_run.emit()
+
+    def get_current_version(self):
+        self.logic.get_current_version()
 
 
 class BaseAdapterInterface:
@@ -243,7 +256,8 @@ class RunTaskmgrAdapter(QObject):
 
 
 class UpdateAdapter(QObject, BaseAdapterInterface):
-    change = Signal()
+    change = Signal(object)
+    trigger_run = Signal()
 
     def __init__(self, logic):
         super().__init__()
@@ -252,6 +266,9 @@ class UpdateAdapter(QObject, BaseAdapterInterface):
 
     def start(self):
         self.running = False
+        self.trigger_run.connect(self.run_task)
+
+        self.run_task()
 
     def stop(self):
         self.running = False
@@ -261,7 +278,11 @@ class UpdateAdapter(QObject, BaseAdapterInterface):
             print('another getting update is running, exit')
             return
         self.running = True
-        ver = self.logic.check_update()
+        ver = None
+        try:
+            ver = self.logic.check_update()
+        except:
+            self.stop()
         self.change.emit(ver)
         self.stop()
 
