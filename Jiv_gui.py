@@ -159,10 +159,10 @@ class MainWidget(QWidget):
         self.pages.addWidget(self.toolkit_page)
         self.settings_page = PageUpdating()
         self.pages.addWidget(self.settings_page)
+        self.update_page = UpdatePage()
+        self.pages.addWidget(self.update_page)
         self.about_page = PageUpdating()
         self.pages.addWidget(self.about_page)
-        self.update_page = PageUpdating()
-        self.pages.addWidget(self.update_page)
 
         self.sidebar_button_group.idClicked.connect(self.pages.setCurrentIndex)
 
@@ -178,6 +178,7 @@ class MainWidget(QWidget):
         self.adapter.ui_change.connect(self.signal_handler)
 
         self.toolkit_page.set_adapter(self.adapter)
+        self.update_page.set_adapter(self.adapter)
 
     def signal_handler(self, name, value):
         print(f'Signal in main widget: {name}, {value}')
@@ -187,6 +188,8 @@ class MainWidget(QWidget):
                 self.live_frame_change(value)
             case 'SuspendMonitorAdapter':
                 self.toolkit_page.ui_change.emit(name, value)
+            case 'UpdateAdapter':
+                self.update_page.ui_change.emit(name, value)
 
     def live_frame_change(self, studentmain_running_state):
         if studentmain_running_state:
@@ -346,6 +349,89 @@ class ToolkitPage(QWidget):
         self.run_taskmgr_btn.setDisabled(True)
         self.adapter.run_taskmgr()
         self.run_taskmgr_btn.setEnabled(True)
+
+
+class UpdatePage(QWidget):
+    ui_change = Signal(str, object)
+
+    def __init__(self):
+        super().__init__()
+        self.studentmain_state = None
+        self.update_state_label = None
+        self.adapter = None
+        self.init_ui()
+
+        self.signal_connect()
+
+    def init_ui(self):
+        main_layout = QVBoxLayout()
+        main_layout.setContentsMargins(3, 3, 3, 3)
+        main_layout.setSpacing(5)
+
+        self.update_state_label = QLabel()
+
+        self.update_state_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.update_state_label.setStyleSheet("""
+                                    background-color: #eeeeee; 
+                                    border-radius: 10px;
+                                    font-size: 24px;
+                                    border: 3px solid #cccccc;
+                                    color: #455A64;   
+                                    """)
+        self.update_state_label.setText(f'Getting updates')
+        # self.update_state_label.setFixedHeight(100)
+
+        button_layout = QGridLayout()
+
+        self.get_update_btn = QPushButton("Get updates")
+        self.get_update_btn.clicked.connect(self.get_update)
+
+        for i, btn in enumerate([self.get_update_btn]):
+            btn.setMinimumHeight(50)
+            button_layout.addWidget(btn, i // 2, i % 2)
+            btn.setStyleSheet("""
+                        QPushButton {
+                            font: 20px;
+                            border: 2px solid #cccccc; 
+                            border-radius: 8px;        
+                            background-color: #eeeeee; 
+                            color: #333;               
+                        }
+                        QPushButton:hover {
+                            background-color: #dedede; 
+                        }
+                        QPushButton:pressed {
+                            background-color: #dddddd; 
+                        }
+                    """)
+
+        main_layout.addWidget(self.update_state_label)
+
+        main_layout.addLayout(button_layout)
+
+        self.setLayout(main_layout)
+
+    def signal_connect(self):
+        self.ui_change.connect(self.signal_handler)
+
+    def signal_handler(self, name, value):
+        # print(f'Signal in toolkit page: {name}, {value}')
+        match name:
+            case 'UpdateAdapter':
+                self.update_update_label(value)
+
+    def set_adapter(self, adapter):
+        self.adapter = adapter
+        self.current_version = self.adapter.get_current_version()
+
+    def get_update(self):
+        self.adapter.get_update()
+
+    def update_update_label(self, state):
+        if state is not None:
+            self.update_state_label.setText(state)
+        else:
+            self.update_state_label.setText('update not found')
 
 
 class PageUpdating(QWidget):
