@@ -278,12 +278,9 @@ class UpdateAdapter(QObject, BaseAdapterInterface):
             print('another getting update is running, exit')
             return
         self.running = True
-        ver = None
-        try:
-            ver = self.logic.check_update()
-        except:
-            self.stop()
-        self.change.emit(ver)
+        state, content = self.logic.check_update()
+
+        self.change.emit((state, content))
         self.stop()
 
     def is_running(self):
