@@ -86,7 +86,7 @@ class MainWidget(QWidget):
                 background-color: #dcdcdc;
             }}
             QPushButton:pressed {{
-                background-color: #cccccc;
+                background-color: #cbcbcb;
             }}
             QPushButton:checked {{
                 background-color: #4a90e2;
@@ -263,7 +263,7 @@ class ToolkitPage(QWidget):
                             background-color: #dedede; 
                         }
                         QPushButton:pressed {
-                            background-color: #dddddd; 
+                            background-color: #cdcdcd; 
                         }
                     """)
             # cec2ff - b3b3f1 - dcb6d5 - cf8ba9 - b15e6c
@@ -391,7 +391,7 @@ class UpdatePage(QWidget):
                             background-color: #dedede; 
                         }
                         QPushButton:pressed {
-                            background-color: #dddddd; 
+                            background-color: #cdcdcd; 
                         }
                     """)
 
