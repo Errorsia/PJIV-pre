@@ -52,7 +52,6 @@ class AdapterManager(QObject):
         self.run_taskmgr_adapter.request_top.connect(self.logic.top_taskmgr)
 
         self.lifelong_objects[self.run_taskmgr_adapter] = thread
-        self.on_demand_objects[self.run_taskmgr_adapter] = thread
 
         thread.start()
 
