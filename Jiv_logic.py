@@ -237,6 +237,8 @@ class JIVLogic:
         Iterates through running processes and compares names.
         :return: PID if found, otherwise None
         """
+        if not process_name.lower().endswith(".exe"):
+            process_name += ".exe"
         process_iter = psutil.process_iter()
         for proc in process_iter:
             try:
