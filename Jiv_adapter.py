@@ -38,6 +38,7 @@ class AdapterManager(QObject):
         self.suspend_studentmain_adapter = SuspendStudentmainAdapter(self.logic)
         self.start_adapter = StartStudentmainAdapter(self.logic)
         self.run_taskmgr_adapter = RunTaskmgrAdapter(self.logic)
+        self.clean_ifeo_debuggers_adapter = CleanIFEODebuggersAdapter(self.logic)
 
         self.init_run_taskmgr_adapter()
 
@@ -100,6 +101,9 @@ class AdapterManager(QObject):
         #     "run_task",
         #     Qt.QueuedConnection
         # )
+
+    def clean_ifeo_debuggers(self):
+        self.clean_ifeo_debuggers_adapter.start()
 
     def get_update(self):
         if self.update_adapter.is_running():
