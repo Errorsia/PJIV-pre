@@ -306,6 +306,25 @@ class JIVLogic:
             return None
 
     @staticmethod
+    def get_pids_by_path(target_path):
+        """
+        Return all PIDs whose executable path matches target_path.
+        Returns a tuple of PIDs, or None if no match.
+        """
+        target_path = os.path.abspath(target_path).lower()
+        pid_list = []
+
+        for proc in psutil.process_iter(['pid', 'exe']):
+            try:
+                exe_path = proc.info['exe']
+                if exe_path and exe_path.lower() == target_path:
+                    pid_list.append(proc.info['pid'])
+            except (psutil.NoSuchProcess, psutil.AccessDenied):
+                continue
+
+        return tuple(pid_list) or None
+
+    @staticmethod
     def terminate_process(pid):
         # noinspection PyUnresolvedReferences
         h_process = win32api.OpenProcess(win32con.PROCESS_TERMINATE, False, pid)
