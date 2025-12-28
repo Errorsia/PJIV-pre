@@ -33,6 +33,7 @@ class JIVLogic:
         self.preparation()
 
     def preparation(self):
+        self.check_operate_system()
         self.authority_admin = self.is_admin()
         if not self.authority_admin:
             if self.privilege_escalation():
@@ -42,7 +43,6 @@ class JIVLogic:
                 print("Run without admin")
         else:
             print('Run as admin')
-        # self.check_update()
 
         self.system_info = self.get_system_info()
         key_path = r"SOFTWARE\TopDomain\e-Learning Class Standard\1.00"
@@ -50,6 +50,12 @@ class JIVLogic:
         self.studentmain_directory = self.read_registry_value(key_path, value_name)
         self.studentmain_path = os.path.join(self.studentmain_directory, "studentmain.exe")
         print(self.studentmain_path)
+
+    @staticmethod
+    def check_operate_system():
+        """Check whether OS is Windows nt"""
+        if os.name != 'nt':
+            sys.exit('UNSUPPORTED SYSTEMS')
 
     @staticmethod
     def is_admin():
@@ -229,23 +235,52 @@ class JIVLogic:
         else:
             return False
 
-    @staticmethod
-    def get_pid_form_process_name(process_name):
-        """
-        Get the PID of a process by name.
+    # WILL BE DELETED IN NEXT VERSION
+    # @staticmethod
+    # def get_pid_form_process_name(process_name):
+    #     """
+    #     Get the PID of a process by name.
+    #
+    #     Iterates through running processes and compares names.
+    #     :return: PID if found, otherwise None
+    #     """
+    #     pid_list = []
+    #
+    #     if not process_name.lower().endswith(".exe"):
+    #         process_name += ".exe"
+    #     process_iter = psutil.process_iter()
+    #     for proc in process_iter:
+    #         try:
+    #             if proc.name().lower() == process_name.lower():
+    #                 pid_list.append(proc.pid)
+    #         except (psutil.NoSuchProcess, psutil.AccessDenied):
+    #             continue
+    #
+    #     if pid_list:
+    #         return tuple(pid_list)
+    #     else:
+    #         return None
 
-        Iterates through running processes and compares names.
-        :return: PID if found, otherwise None
+    @staticmethod
+    def get_pid_from_process_name(process_name):
         """
-        process_iter = psutil.process_iter()
-        for proc in process_iter:
+        Get the PID(s) of a process by name.
+        Returns a tuple of PIDs, or None if not found.
+        """
+        if not process_name.lower().endswith(".exe"):
+            process_name += ".exe"
+
+        target = process_name.lower()
+        pid_list = []
+
+        for proc in psutil.process_iter(['pid', 'name']):
             try:
-                if proc.name().lower() == process_name.lower():
-                    return proc.pid
+                if proc.info['name'] and proc.info['name'].lower() == target:
+                    pid_list.append(proc.info['pid'])
             except (psutil.NoSuchProcess, psutil.AccessDenied):
                 continue
 
-        return None
+        return tuple(pid_list) or None
 
     @staticmethod
     def get_pid_by_name(process_name):
@@ -268,6 +303,25 @@ class JIVLogic:
                 print(f"Unexpected error for PID {pid}: {err}")
                 continue
             return None
+
+    @staticmethod
+    def get_pids_by_path(target_path):
+        """
+        Return all PIDs whose executable path matches target_path.
+        Returns a tuple of PIDs, or None if no match.
+        """
+        target_path = os.path.abspath(target_path).lower()
+        pid_list = []
+
+        for proc in psutil.process_iter(['pid', 'exe']):
+            try:
+                exe_path = proc.info['exe']
+                if exe_path and exe_path.lower() == target_path:
+                    pid_list.append(proc.info['pid'])
+            except (psutil.NoSuchProcess, psutil.AccessDenied):
+                continue
+
+        return tuple(pid_list) or None
 
     @staticmethod
     def terminate_process(pid):
@@ -493,6 +547,58 @@ class JIVLogic:
     @staticmethod
     def start_file(file_name):
         os.startfile(file_name)
+
+    @staticmethod
+    def clean_ifeo_debuggers():
+        success_flag = True
+        base_path = r"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options"
+
+        try:
+            base_key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, base_path, 0, winreg.KEY_ALL_ACCESS)
+        except PermissionError:
+            print("Permission denied")
+            return
+        except Exception as err:
+            print(f"Cannot open IFEO key: {err}")
+            return
+
+        try:
+            index = 0
+            while True:
+                try:
+                    subkey_name = winreg.EnumKey(base_key, index)
+                    index += 1
+                except OSError:
+                    break  # No subkey
+
+                subkey_path = base_path + "\\" + subkey_name
+
+                try:
+                    subkey = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, subkey_path, 0, winreg.KEY_ALL_ACCESS)
+                except PermissionError:
+                    continue
+                except FileNotFoundError:
+                    continue
+
+                try:
+                    winreg.QueryValueEx(subkey, "debugger")
+                except FileNotFoundError:
+                    winreg.CloseKey(subkey)
+                    continue
+                else:
+                    # Find debugger, delete subkey
+                    winreg.CloseKey(subkey)
+                    try:
+                        winreg.DeleteKey(winreg.HKEY_LOCAL_MACHINE, subkey_path)
+                        print(f"{subkey_name} has been deleted")
+                    except Exception as err:
+                        success_flag = False
+                        print(f"{subkey_name} cannot be deleted: {err}")
+
+        finally:
+            winreg.CloseKey(base_key)
+
+        return success_flag
 
 # self.floatwin.setText(
 #     f"窗口标题：{GetWindowText(hwnd)}\n窗口类名：{GetClassName(hwnd)}\n窗口位置：{str(GetWindowRect(hwnd))}\n窗口句柄：{int(hwnd)}\n窗口进程：{procname}")

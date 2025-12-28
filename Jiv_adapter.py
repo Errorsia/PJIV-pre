@@ -20,7 +20,7 @@ class AdapterManager(QObject):
         self.lifelong_objects = {}
 
         self.terminate_adapter = self.start_adapter = self.suspend_studentmain_adapter = self.run_taskmgr_adapter = None
-        self.update_adapter = None
+        self.update_adapter = self.clean_ifeo_debuggers_adapter = None
 
         self.init_workers()
         self.start_all()
@@ -38,6 +38,7 @@ class AdapterManager(QObject):
         self.suspend_studentmain_adapter = SuspendStudentmainAdapter(self.logic)
         self.start_adapter = StartStudentmainAdapter(self.logic)
         self.run_taskmgr_adapter = RunTaskmgrAdapter(self.logic)
+        self.clean_ifeo_debuggers_adapter = CleanIFEODebuggersAdapter(self.logic)
 
         self.init_run_taskmgr_adapter()
 
@@ -101,6 +102,10 @@ class AdapterManager(QObject):
         #     Qt.QueuedConnection
         # )
 
+    def clean_ifeo_debuggers(self):
+        self.clean_ifeo_debuggers_adapter.start()
+        print('ifeo cleaned')
+
     def get_update(self):
         if self.update_adapter.is_running():
             print("update adapter already running")
@@ -109,7 +114,7 @@ class AdapterManager(QObject):
         self.update_adapter.trigger_run.emit()
 
     def get_current_version(self):
-        self.logic.get_current_version()
+        return self.logic.get_current_version()
 
 
 class BaseAdapterInterface:
@@ -148,7 +153,7 @@ class MonitorAdapter(QObject, BaseAdapterInterface):
             self.change.emit(state)
 
     def check_state(self):
-        return self.logic.get_process_state(Jiv_build_config.E_CLASSROOM_NAME)
+        return self.logic.get_process_state(Jiv_build_config.E_CLASSROOM_PROGRAM_NAME)
 
 
 class SuspendMonitorAdapter(QObject, BaseAdapterInterface):
@@ -179,9 +184,12 @@ class SuspendMonitorAdapter(QObject, BaseAdapterInterface):
         """
         :return: Studentmain suspend state
         """
-        pid = self.logic.get_pid_form_process_name(Jiv_build_config.E_CLASSROOM_NAME)
-        if pid is None:
+        pids = self.logic.get_pid_from_process_name(Jiv_build_config.E_CLASSROOM_PROGRAM_NAME)
+        if pids is None:
             return SuspendState.NOT_FOUND
+        # Same logic as the earlier method, may cause bug
+        # If a process's name is studentmain, but it's not the real one, this can suspend the wrong process
+        pid = pids[0]
         if self.logic.is_suspended(pid):
             return SuspendState.SUSPENDED
         else:
@@ -276,14 +284,16 @@ class TerminateAdapter:
         self.run_task()
 
     def run_task(self):
-        pid = self.logic.get_pid_form_process_name(Jiv_build_config.E_CLASSROOM_NAME)
-        if pid is None:
-            print(f'{Jiv_build_config.E_CLASSROOM_NAME} not found')
+        pids = self.logic.get_pid_from_process_name(Jiv_build_config.E_CLASSROOM_PROGRAM_NAME)
+        if pids is None:
+            print(f'{Jiv_build_config.E_CLASSROOM_PROGRAM_NAME} not found')
             return
-        self.logic.terminate_process(pid)
+
+        for pid in pids:
+            self.logic.terminate_process(pid)
 
     def check_state(self):
-        return self.logic.get_process_state(Jiv_build_config.E_CLASSROOM_NAME)
+        return self.logic.get_process_state(Jiv_build_config.E_CLASSROOM_PROGRAM_NAME)
 
 
 class StartStudentmainAdapter:
@@ -301,20 +311,29 @@ class SuspendStudentmainAdapter:
         self.logic = logic
 
     def start(self):
-        pid = self.logic.get_pid_form_process_name(Jiv_build_config.E_CLASSROOM_NAME)
+        pids = self.logic.get_pid_from_process_name(Jiv_build_config.E_CLASSROOM_PROGRAM_NAME)
 
-        if pid is None:
-            print(f'{Jiv_build_config.E_CLASSROOM_NAME} not found')
-            return
+        if pids is None:
+            print(f'{Jiv_build_config.E_CLASSROOM_PROGRAM_NAME} not found')
 
-        suspend_state = self.logic.is_suspended(pid)
-        if suspend_state:
-            self.resume(pid)
-        else:
-            self.suspend(pid)
+        for pid in pids:
+            suspend_state = self.logic.is_suspended(pid)
+            if suspend_state:
+                self.resume(pid)
+            else:
+                self.suspend(pid)
 
     def suspend(self, pid):
         self.logic.suspend_process(pid)
 
     def resume(self, pid):
         self.logic.resume_process(pid)
+
+
+class CleanIFEODebuggersAdapter:
+    def __init__(self, logic):
+        super().__init__()
+        self.logic = logic
+
+    def start(self):
+        self.logic.clean_ifeo_debuggers()
