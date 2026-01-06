@@ -2,27 +2,26 @@ import sys
 
 from PySide6.QtWidgets import QApplication
 
-import Jiv_logic
-import Jiv_adapter
-import Jiv_gui
-import Jiv_service
-import Jiv_build_config
+from jiv.core import logic, service
+from jiv.gui import adapter
+from jiv.gui import gui
+from jiv.config import build_config
 
 
 class JIVMain:
     def __init__(self):
         self.app = QApplication(sys.argv)
 
-        self.logic = Jiv_logic.JIVLogic(Jiv_build_config)
-        self.gui = Jiv_gui.MainWindow()
-        self.adapters = Jiv_adapter.AdapterManager(self.logic, self.gui)
+        self.logic = logic.JIVLogic(build_config)
+        self.gui = gui.MainWindow()
+        self.adapters = adapter.AdapterManager(self.logic, self.gui)
         self.gui.adapter_signal_connect(self.adapters)
 
         self.gui.show()
 
         # self.logic.after_ui_launched(self.gui.winId())
 
-        self.services = Jiv_service.ServiceManager(self.logic, self.gui)
+        self.services = service.ServiceManager(self.logic, self.gui)
 
         self.gui.close_event.connect(self.handle_close_event)
 

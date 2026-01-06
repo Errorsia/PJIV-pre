@@ -14,12 +14,13 @@ import requests
 import win32api
 import win32com.client
 import win32con
+# noinspection PyPackageRequirements
 import win32gui
 import win32gui_struct
 import win32process
 from packaging import version
 
-from Jiv_enmus import UpdateState
+from jiv.core.enums import UpdateState
 
 
 class JIVLogic:

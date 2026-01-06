@@ -3,8 +3,8 @@
 
 from PySide6.QtCore import QObject, Signal, QTimer, QThread
 
-import Jiv_build_config
-from Jiv_enmus import SuspendState
+from jiv.config import build_config
+from jiv.core.enums import SuspendState
 
 
 class AdapterManager(QObject):
@@ -153,7 +153,7 @@ class MonitorAdapter(QObject, BaseAdapterInterface):
             self.change.emit(state)
 
     def check_state(self):
-        return self.logic.get_process_state(Jiv_build_config.E_CLASSROOM_PROGRAM_NAME)
+        return self.logic.get_process_state(build_config.E_CLASSROOM_PROGRAM_NAME)
 
 
 class SuspendMonitorAdapter(QObject, BaseAdapterInterface):
@@ -184,7 +184,7 @@ class SuspendMonitorAdapter(QObject, BaseAdapterInterface):
         """
         :return: Studentmain suspend state
         """
-        pids = self.logic.get_pid_from_process_name(Jiv_build_config.E_CLASSROOM_PROGRAM_NAME)
+        pids = self.logic.get_pid_from_process_name(build_config.E_CLASSROOM_PROGRAM_NAME)
         if pids is None:
             return SuspendState.NOT_FOUND
         # Same logic as the earlier method, may cause bug
@@ -284,16 +284,16 @@ class TerminateAdapter:
         self.run_task()
 
     def run_task(self):
-        pids = self.logic.get_pid_from_process_name(Jiv_build_config.E_CLASSROOM_PROGRAM_NAME)
+        pids = self.logic.get_pid_from_process_name(build_config.E_CLASSROOM_PROGRAM_NAME)
         if pids is None:
-            print(f'{Jiv_build_config.E_CLASSROOM_PROGRAM_NAME} not found')
+            print(f'{build_config.E_CLASSROOM_PROGRAM_NAME} not found')
             return
 
         for pid in pids:
             self.logic.terminate_process(pid)
 
     def check_state(self):
-        return self.logic.get_process_state(Jiv_build_config.E_CLASSROOM_PROGRAM_NAME)
+        return self.logic.get_process_state(build_config.E_CLASSROOM_PROGRAM_NAME)
 
 
 class StartStudentmainAdapter:
@@ -311,10 +311,10 @@ class SuspendStudentmainAdapter:
         self.logic = logic
 
     def start(self):
-        pids = self.logic.get_pid_from_process_name(Jiv_build_config.E_CLASSROOM_PROGRAM_NAME)
+        pids = self.logic.get_pid_from_process_name(build_config.E_CLASSROOM_PROGRAM_NAME)
 
         if pids is None:
-            print(f'{Jiv_build_config.E_CLASSROOM_PROGRAM_NAME} not found')
+            print(f'{build_config.E_CLASSROOM_PROGRAM_NAME} not found')
 
         for pid in pids:
             suspend_state = self.logic.is_suspended(pid)

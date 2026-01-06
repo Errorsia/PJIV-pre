@@ -1,0 +1,7 @@
+packaging==25.0
+psutil==7.2.1
+pyside6==6.10.1
+pyside6_addons==6.10.1
+pyside6_essentials==6.10.1
+pywin32==311
+Requests==2.32.5

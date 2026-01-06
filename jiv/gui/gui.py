@@ -2,7 +2,7 @@ from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import QMainWindow, QWidget, QLabel, QPushButton, QGridLayout, QVBoxLayout, QHBoxLayout, \
     QSizePolicy, QStackedWidget, QLayout, QButtonGroup, QRadioButton
 
-from Jiv_enmus import SuspendState, UpdateState
+from jiv.core.enums import SuspendState, UpdateState
 
 
 class MainWindow(QMainWindow):
