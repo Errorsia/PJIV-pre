@@ -50,7 +50,7 @@ class MainWidget(QWidget):
         self.sidebar_tabs = self.sidebar_button_group = None
 
         self.pages = None
-        self.toolkit_page = self.about_page = self.settings_page = self.update_page = None
+        self.toolkit_page = self.functions_page = self.about_page = self.settings_page = self.update_page = None
 
         self.init_ui()
 
@@ -67,6 +67,7 @@ class MainWidget(QWidget):
 
         self.sidebar_tabs = [
             "Tools",
+            "Function",
             "Settings",
             "Updates",
             "Info"
@@ -145,6 +146,8 @@ class MainWidget(QWidget):
         self.pages = QStackedWidget()
         self.toolkit_page = ToolPage()
         self.pages.addWidget(self.toolkit_page)
+        self.functions_page = PageUpdating()
+        self.pages.addWidget(self.functions_page)
         self.settings_page = SettingsPage()
         self.pages.addWidget(self.settings_page)
         self.update_page = UpdatePage()
