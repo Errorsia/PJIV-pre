@@ -1,6 +1,6 @@
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import QMainWindow, QWidget, QLabel, QPushButton, QGridLayout, QVBoxLayout, QHBoxLayout, \
-    QSizePolicy, QStackedWidget, QLayout, QButtonGroup, QRadioButton
+    QSizePolicy, QStackedWidget, QLayout, QButtonGroup, QRadioButton, QLineEdit
 
 from jiv.core.enums import SuspendState, UpdateState
 
@@ -385,6 +385,44 @@ class FunctionsPage(QWidget):
         terminate_layout = QVBoxLayout(self.terminate_frame)
         terminate_layout.setContentsMargins(15, 5, 5, 5)
         terminate_layout.setSpacing(3)
+
+        self.terminate_title_label = QLabel("Terminate Process")
+        self.terminate_title_label.setStyleSheet("""
+            background-color: #eeeeee; 
+            border-radius: 10px;
+            font-size: 20px;
+            color: #455A64;   
+        """)
+
+        self.terminate_box_layout = QHBoxLayout()
+
+        self.process_input = QLineEdit()
+        self.process_input.setPlaceholderText("Enter PID or process name")
+        self.process_input.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+        self.process_input.setStyleSheet("""
+            QLineEdit {
+                font-size: 16px;
+                padding: 8px;
+                border: 2px solid #F8C8DC;
+                border-radius: 8px;
+                background-color: #FFF0F5;
+                color: #C94F7C;
+            }
+            QLineEdit:focus {
+                border: 2px solid #C94F7C;
+                background-color: #FDF6FA;
+            }
+        """)
+
+        self.terminate_btn = QPushButton("Kill Process")
+        self.terminate_btn.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
+
+        self.terminate_box_layout.addWidget(self.process_input)
+        self.terminate_box_layout.addWidget(self.terminate_btn)
+
+        terminate_layout.addWidget(self.terminate_title_label)
+        terminate_layout.addLayout(self.terminate_box_layout)
+
         main_layout.addWidget(self.terminate_frame)
         main_layout.addStretch(1)
 
