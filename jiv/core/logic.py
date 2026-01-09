@@ -21,6 +21,7 @@ import win32process
 from packaging import version
 
 from jiv.core.enums import UpdateState
+from jiv.core.enums import PidStatus
 
 
 class JIVLogic:
@@ -301,6 +302,24 @@ class JIVLogic:
                 continue
 
         return tuple(pid_list) or None
+
+    @staticmethod
+    def pid_exists(pid: int) -> PidStatus:
+        if psutil.pid_exists(pid):
+            return PidStatus.EXISTS
+        else:
+            return PidStatus.NOT_EXISTS
+
+    @staticmethod
+    def pid_exists_advanced(pid: int) -> PidStatus:
+        try:
+            p = psutil.Process(pid)
+            p.status()
+            return PidStatus.EXISTS
+        except psutil.NoSuchProcess:
+            return PidStatus.NOT_EXISTS
+        except psutil.AccessDenied:
+            return PidStatus.ACCESS_DENIED
 
     @staticmethod
     def terminate_process(pid, exit_code = 1):
