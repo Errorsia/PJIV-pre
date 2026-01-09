@@ -35,8 +35,9 @@ class AdapterManager(QObject):
         self.lifelong_adapters.append(self.update_adapter)
 
         self.terminate_pid_adapter = TerminatePIDAdapter(self.logic)
+        self.lifelong_adapters.append(self.terminate_pid_adapter)
 
-        self.terminate_process_adapter = TerminateProcessAdapter(self.logic)
+        self.terminate_process_adapter = TerminateProcessAdapter(self.logic, self.terminate_pid_adapter)
         self.lifelong_adapters.append(self.terminate_process_adapter)
 
         self.run_taskmgr_adapter = RunTaskmgrAdapter(self.logic)
@@ -54,7 +55,7 @@ class AdapterManager(QObject):
         thread.started.connect(self.run_taskmgr_adapter.start)
 
         self.run_taskmgr_adapter.change.connect(lambda result, w=self.run_taskmgr_adapter:
-                                                 self.ui_change.emit(type(w).__name__, result))
+                                                self.ui_change.emit(type(w).__name__, result))
         self.run_taskmgr_adapter.request_top.connect(self.logic.top_taskmgr)
 
         self.lifelong_objects[self.run_taskmgr_adapter] = thread
@@ -69,7 +70,7 @@ class AdapterManager(QObject):
             thread.started.connect(adapter.start)
             # Wrap with lambda and send the adapter class name and result together
             adapter.change.connect(lambda result, w=adapter:
-                                    self.ui_change.emit(type(w).__name__, result))
+                                   self.ui_change.emit(type(w).__name__, result))
 
             self.lifelong_objects[adapter] = thread
             thread.start()
@@ -280,8 +281,8 @@ class UpdateAdapter(QObject, BaseAdapterInterface):
 
 
 class TerminateCustomProcessAdapter(QObject):
-    trigger_run = Signal()
     change = Signal()
+    trigger_run = Signal()
     request_top = Signal()
 
     def __init__(self, logic):
@@ -325,18 +326,20 @@ class TerminateCustomProcessAdapter(QObject):
         return self.running
 
 
-class TerminateProcessAdapter:
+class TerminateProcessAdapter(QObject):
+    change = Signal()
     trigger_run = Signal()
-    def __init__(self, logic):
+
+    def __init__(self, logic, terminate_pid_adapter):
         super().__init__()
         self.logic = logic
         self.last_result = None
-        self.terminate_pid_adapter = TerminatePIDAdapter(self.logic)
+        self.terminate_pid_adapter = terminate_pid_adapter
 
     def start(self):
         self.trigger_run.connect(self.run_task)
 
-    def run_task(self, process_name = build_config.E_CLASSROOM_PROGRAM_NAME):
+    def run_task(self, process_name=build_config.E_CLASSROOM_PROGRAM_NAME):
         pids = self.logic.get_pid_from_process_name(process_name)
         self.terminate_pid_adapter.trigger_run.emit(pids)
 
@@ -344,7 +347,8 @@ class TerminateProcessAdapter:
         return self.logic.get_process_state(build_config.E_CLASSROOM_PROGRAM_NAME)
 
 
-class TerminatePIDAdapter:
+class TerminatePIDAdapter(QObject):
+    change = Signal()
     trigger_run = Signal()
 
     def __init__(self, logic):
