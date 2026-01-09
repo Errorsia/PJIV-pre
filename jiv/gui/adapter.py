@@ -19,7 +19,7 @@ class AdapterManager(QObject):
         self.lifelong_adapters = []
         self.lifelong_objects = {}
 
-        self.terminate_adapter = self.start_adapter = self.suspend_studentmain_adapter = self.run_taskmgr_adapter = None
+        self.terminate_process_adapter = self.start_adapter = self.suspend_studentmain_adapter = self.run_taskmgr_adapter = None
         self.update_adapter = self.clean_ifeo_debuggers_adapter = None
 
         self.init_workers()
@@ -34,7 +34,7 @@ class AdapterManager(QObject):
         self.update_adapter = UpdateAdapter(self.logic)
         self.lifelong_adapters.append(self.update_adapter)
 
-        self.terminate_adapter = TerminateAdapter(self.logic)
+        self.terminate_process_adapter = TerminateProcessAdapter(self.logic)
         self.suspend_studentmain_adapter = SuspendStudentmainAdapter(self.logic)
         self.start_adapter = StartStudentmainAdapter(self.logic)
         self.run_taskmgr_adapter = RunTaskmgrAdapter(self.logic)
@@ -79,7 +79,7 @@ class AdapterManager(QObject):
             thread.deleteLater()
 
     def terminate_studentmain(self):
-        self.terminate_adapter.start()
+        self.terminate_process_adapter.start()
 
     def start_studentmain(self):
         self.start_adapter.start()
@@ -274,19 +274,36 @@ class UpdateAdapter(QObject, BaseAdapterInterface):
         return self.running
 
 
-class TerminateAdapter:
+class TerminateProcessAdapter:
+    def __init__(self, logic):
+        super().__init__()
+        self.logic = logic
+        self.last_result = None
+        self.terminate_pid_adapter = TerminatePIDAdapter(self.logic)
+
+    def start(self, process_name = build_config.E_CLASSROOM_PROGRAM_NAME):
+        self.run_task(process_name)
+
+    def run_task(self, process_name = build_config.E_CLASSROOM_PROGRAM_NAME):
+        pids = self.logic.get_pid_from_process_name(process_name)
+        self.terminate_pid_adapter.start(pids)
+
+    def check_state(self):
+        return self.logic.get_process_state(build_config.E_CLASSROOM_PROGRAM_NAME)
+
+
+class TerminatePIDAdapter:
     def __init__(self, logic):
         super().__init__()
         self.logic = logic
         self.last_result = None
 
-    def start(self):
-        self.run_task()
+    def start(self, pids):
+        self.run_task(pids)
 
-    def run_task(self):
-        pids = self.logic.get_pid_from_process_name(build_config.E_CLASSROOM_PROGRAM_NAME)
+    def run_task(self, pids: tuple):
         if pids is None:
-            print(f'{build_config.E_CLASSROOM_PROGRAM_NAME} not found')
+            print(f'PID not found')
             return
 
         for pid in pids:
