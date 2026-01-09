@@ -339,9 +339,15 @@ class TerminateProcessAdapter(QObject):
     def start(self):
         self.trigger_run.connect(self.run_task)
 
+    def stop(self):
+        self.running = False
+
+
     def run_task(self, process_name=build_config.E_CLASSROOM_PROGRAM_NAME):
+        self.running = True
         pids = self.logic.get_pid_from_process_name(process_name)
         self.terminate_pid_adapter.trigger_run.emit(pids)
+        self.stop()
 
     def check_state(self):
         return self.logic.get_process_state(build_config.E_CLASSROOM_PROGRAM_NAME)
@@ -358,6 +364,9 @@ class TerminatePIDAdapter(QObject):
 
     def start(self):
         self.trigger_run.connect(self.run_task)
+
+    def stop(self):
+        self.running = False
 
     def run_task(self, pids: tuple):
         if pids is None:
