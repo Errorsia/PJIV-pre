@@ -19,8 +19,9 @@ class AdapterManager(QObject):
         self.lifelong_adapters = []
         self.lifelong_objects = {}
 
-        self.terminate_process_adapter = self.start_adapter = self.suspend_studentmain_adapter = self.run_taskmgr_adapter = None
-        self.update_adapter = self.clean_ifeo_debuggers_adapter = None
+        self.terminate_pid_adapter = self.terminate_process_adapter = self.start_adapter = None
+        self.suspend_studentmain_adapter = self.run_taskmgr_adapter = self.update_adapter = None
+        self.clean_ifeo_debuggers_adapter = None
 
         self.init_workers()
         self.start_all()
@@ -280,8 +281,6 @@ class UpdateAdapter(QObject, BaseAdapterInterface):
         return self.running
 
 
-
-
 # ################
 
 class TerminatePIDTask(QRunnable):
@@ -312,6 +311,28 @@ class TerminatePIDAdapter(QObject):
 
     def run_sync(self, pids):
         TerminatePIDTask(self.logic, pids).run()
+
+
+class TerminateProcessAdapter:
+    """Terminate process, rely on PID adapter"""
+    change = Signal(str)
+
+    def __init__(self, logic, pid_adapter: TerminatePIDAdapter):
+        self.logic = logic
+        self.pid_adapter = pid_adapter
+
+    def run_async(self, process_name):
+        pids = self.logic.get_pid_from_process_name(process_name)
+        self.pid_adapter.run_async(pids)
+
+    def run_sync(self, process_name):
+        pids = self.logic.get_pid_from_process_name(process_name)
+        self.pid_adapter.run_sync(pids)
+
+
+##########################
+
+
 class TerminateCustomProcessAdapter(QObject):
     change = Signal()
     trigger_run = Signal()
@@ -380,6 +401,7 @@ class TerminateProcessAdapter(QObject):
         pids = self.logic.get_pid_from_process_name(process_name)
         self.terminate_pid_adapter.trigger_run.emit(pids)
         self.stop()
+
 
 class TerminatePIDAdapter(QObject):
     change = Signal()
