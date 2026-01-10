@@ -51,6 +51,7 @@ class AdapterManager(QObject):
         self.suspend_studentmain_adapter = SuspendStudentmainAdapter(self.logic)
         self.start_adapter = StartStudentmainAdapter(self.logic)
         self.clean_ifeo_debuggers_adapter = CleanIFEODebuggersAdapter(self.logic)
+        self.terminate_custom_process_adapter = TerminateCustomProcessAdapter(self.logic, self.terminate_pid_adapter, self.terminate_process_adapter)
 
         self.init_run_taskmgr_adapter()
 
@@ -133,6 +134,9 @@ class AdapterManager(QObject):
 
     def get_current_version(self):
         return self.logic.get_current_version()
+
+    def terminate_custom_process(self, process_info):
+        self.terminate_custom_process_adapter.trigger_run.emit(process_info)
 
 
 class BaseAdapterInterface:
@@ -293,12 +297,14 @@ class UpdateAdapter(QObject, BaseAdapterInterface):
 
 class TerminateCustomProcessAdapter(QObject):
     change = Signal()
-    trigger_run = Signal()
+    trigger_run = Signal(str)
 
-    def __init__(self, logic, terminate_adapter):
+    def __init__(self, logic, terminate_pid_adapter, terminate_process_adapter):
         super().__init__()
         self.running = None
         self.logic = logic
+        self.terminate_pid_adapter = terminate_pid_adapter
+        self.terminate_process_adapter = terminate_process_adapter
 
     def start(self):
         self.running = False
@@ -324,16 +330,13 @@ class TerminateCustomProcessAdapter(QObject):
         self.stop()
 
     def pid_exists(self, pid: int):
-        pid_exists =  self.logic.pid_exists(pid)
-        if pid_exists == PidStatus.EXISTS:
-            return True
-        return False
+        return self.logic.pid_exists(pid) == PidStatus.EXISTS
 
     def terminate_pid(self, pid):
-        pass
+        self.terminate_pid_adapter.run_async((pid, ))
 
-    def terminate_process(self, process_name):
-        ...
+    def terminate_process(self, process_name: str):
+        self.terminate_process_adapter.run_async(process_name)
 
     def is_running(self):
         return self.running
