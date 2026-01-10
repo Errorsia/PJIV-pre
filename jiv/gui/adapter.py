@@ -4,7 +4,7 @@
 from PySide6.QtCore import QObject, Signal, QTimer, QThread, QRunnable, QThreadPool
 
 from jiv.config import build_config
-from jiv.core.enums import SuspendState
+from jiv.core.enums import SuspendState, PidStatus
 
 
 class AdapterManager(QObject):
@@ -62,7 +62,6 @@ class AdapterManager(QObject):
 
         self.run_taskmgr_adapter.change.connect(lambda result, w=self.run_taskmgr_adapter:
                                                 self.ui_change.emit(type(w).__name__, result))
-        self.run_taskmgr_adapter.request_top.connect(self.logic.top_taskmgr)
 
         self.lifelong_objects[self.run_taskmgr_adapter] = thread
 
@@ -89,6 +88,13 @@ class AdapterManager(QObject):
             thread.wait()
             adapter.deleteLater()
             thread.deleteLater()
+
+    def wait_for_pools(self):
+        self.terminate_threadpool.waitForDone()
+
+    def program_exit(self):
+        self.stop_all()
+        self.wait_for_pools()
 
     def terminate_studentmain(self):
         self.terminate_process_adapter.run_async(build_config.E_CLASSROOM_PROGRAM_NAME)
@@ -211,7 +217,6 @@ class SuspendMonitorAdapter(QObject, BaseAdapterInterface):
 class RunTaskmgrAdapter(QObject):
     trigger_run = Signal()
     change = Signal()
-    request_top = Signal()
 
     def __init__(self, logic):
         super().__init__()
@@ -240,7 +245,7 @@ class RunTaskmgrAdapter(QObject):
     def is_taskmgr_alive(self):
         self.cnt += 1
         if self.logic.get_process_state('taskmgr.exe'):
-            self.request_top.emit()
+            self.logic.top_taskmgr()
             self.stop()
         if self.cnt >= 30:  # 3s time out
             print("Find taskmgr Time out")
@@ -289,9 +294,8 @@ class UpdateAdapter(QObject, BaseAdapterInterface):
 class TerminateCustomProcessAdapter(QObject):
     change = Signal()
     trigger_run = Signal()
-    request_top = Signal()
 
-    def __init__(self, logic):
+    def __init__(self, logic, terminate_adapter):
         super().__init__()
         self.running = None
         self.logic = logic
@@ -320,7 +324,10 @@ class TerminateCustomProcessAdapter(QObject):
         self.stop()
 
     def pid_exists(self, pid: int):
-        pass
+        pid_exists =  self.logic.pid_exists(pid)
+        if pid_exists == PidStatus.EXISTS:
+            return True
+        return False
 
     def terminate_pid(self, pid):
         pass
