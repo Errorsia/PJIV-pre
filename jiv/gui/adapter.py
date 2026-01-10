@@ -301,32 +301,39 @@ class TerminateCustomProcessAdapter(QObject):
 
     def __init__(self, logic, terminate_pid_adapter, terminate_process_adapter):
         super().__init__()
-        self.running = None
+        # self.running = None
         self.logic = logic
         self.terminate_pid_adapter = terminate_pid_adapter
         self.terminate_process_adapter = terminate_process_adapter
 
+        self.start()
+
     def start(self):
-        self.running = False
+        # self.running = False
         self.trigger_run.connect(self.run_task)
 
     def stop(self):
-        self.running = False
+        # self.running = False
+        pass
 
     def run_task(self, process_info: str):
         if self.is_running():
             print('another getting update is running, exit')
             return
-        self.running = True
+        # self.running = True
+        print(f'process info in runtask: {process_info}')
         if process_info.isdigit():
             process_pid = int(process_info)
             if self.pid_exists(process_pid):
                 self.terminate_pid(process_pid)
             else:
-                self.terminate_process(process_info)
+                process_name = self.add_exe_suffix(process_info)
+                print(f'terminate process: {process_name}')
+                self.terminate_process(process_name)
 
         else:
-            self.terminate_process(process_info)
+            process_name = self.add_exe_suffix(process_info)
+            self.terminate_process(process_name)
         self.stop()
 
     def pid_exists(self, pid: int):
@@ -338,8 +345,16 @@ class TerminateCustomProcessAdapter(QObject):
     def terminate_process(self, process_name: str):
         self.terminate_process_adapter.run_async(process_name)
 
-    def is_running(self):
-        return self.running
+    @staticmethod
+    def add_exe_suffix(process_name: str) -> str:
+        if not process_name.lower().endswith(".exe"):
+            return process_name + ".exe"
+        return process_name
+
+    @staticmethod
+    def is_running():
+        # return self.running
+        return False
 
 
 # ################
