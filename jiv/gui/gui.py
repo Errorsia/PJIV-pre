@@ -27,6 +27,8 @@ class MainWindow(QMainWindow):
         self.setMinimumSize(366, 488)
         self.resize(366, 488)
 
+        # self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint)
+
         self.setWindowFlags(Qt.WindowType.WindowStaysOnTopHint)
 
     def adapter_signal_connect(self, adapter):
@@ -454,8 +456,10 @@ class FunctionsPage(QWidget):
 
 
     def custom_terminate(self):
-        process_info = self.custom_process_input.text()
-        self.adapter.terminate_custom_process(process_info)
+        process_info = self.custom_process_input.text().strip()
+        if process_info:
+            self.adapter.terminate_custom_process(process_info)
+            self.custom_process_input.setText('')
 
 
 
