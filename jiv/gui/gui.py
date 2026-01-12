@@ -52,7 +52,7 @@ class MainWidget(QWidget):
         self.sidebar_tabs = self.sidebar_button_group = None
 
         self.pages = None
-        self.toolkit_page = self.functions_page = self.about_page = self.settings_page = self.update_page = None
+        self.tool_page = self.functions_page = self.about_page = self.settings_page = self.update_page = None
 
         self.init_ui()
 
@@ -146,8 +146,8 @@ class MainWidget(QWidget):
 
         # Stack pages
         self.pages = QStackedWidget()
-        self.toolkit_page = ToolPage()
-        self.pages.addWidget(self.toolkit_page)
+        self.tool_page = ToolPage()
+        self.pages.addWidget(self.tool_page)
         self.functions_page = FunctionsPage()
         self.pages.addWidget(self.functions_page)
         self.settings_page = SettingsPage()
@@ -170,7 +170,7 @@ class MainWidget(QWidget):
         self.adapter = adapter
         self.adapter.ui_change.connect(self.signal_handler)
 
-        self.toolkit_page.set_adapter(self.adapter)
+        self.tool_page.set_adapter(self.adapter)
         self.functions_page.set_adapter(self.adapter)
         self.update_page.set_adapter(self.adapter)
 
@@ -178,10 +178,10 @@ class MainWidget(QWidget):
         print(f'Signal in main widget: {name}, {value}')
         match name:
             case 'MonitorAdapter':
-                self.toolkit_page.ui_change.emit(name, value)
+                self.tool_page.ui_change.emit(name, value)
                 self.live_frame_change(value)
             case 'SuspendMonitorAdapter':
-                self.toolkit_page.ui_change.emit(name, value)
+                self.tool_page.ui_change.emit(name, value)
             case 'UpdateAdapter':
                 self.update_page.ui_change.emit(name, value)
 
