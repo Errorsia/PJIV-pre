@@ -478,13 +478,17 @@ class FunctionsPage(QWidget):
 
 
 
-class SettingsPage(QWidget):
+class SettingsPage(QWidget, RequireNameMixin):
     ui_change = Signal(str, object)
 
     def __init__(self):
         super().__init__()
+        self.page_name = None
         self.adapter = None
         self.init_ui()
+        
+    def set_page_name(self):
+        self.page_name = 'Settings'
 
     def init_ui(self):
         main_layout = QVBoxLayout()
