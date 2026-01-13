@@ -121,13 +121,14 @@ class MainWidget(QWidget):
         sidebar_container.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
         sidebar_container_layout.setSizeConstraint(QLayout.SizeConstraint.SetFixedSize)
 
-        for index, name in enumerate(self.sidebar_tabs):
-            btn = QPushButton(name)
+        for index, widget in enumerate(self.pages):
+            page_name = widget.page_name
+            btn = QPushButton(page_name)
             btn.setFixedSize(self.TASKBAR_BTN_WIDTH, self.TASKBAR_BTN_HEIGHT)
             btn.setCheckable(True)
             btn.setCursor(Qt.CursorShape.PointingHandCursor)
             btn.setStyleSheet(base_btn_style)
-            btn.setToolTip(name)
+            btn.setToolTip(page_name)
             self.sidebar_button_group.addButton(btn, index)
             sidebar_container_layout.addWidget(btn)
 
@@ -500,6 +501,7 @@ class SettingsPage(QWidget, RequireNameMixin):
         super().__init__()
         self.page_name = None
         self.adapter = None
+        self.set_page_name()
         self.init_ui()
         
     def set_page_name(self):
@@ -586,6 +588,7 @@ class UpdatePage(QWidget, RequireNameMixin):
         self.adapter = None
         self.current_version = None
 
+        self.set_page_name()
         self.init_ui()
 
         self.signal_connect()
@@ -699,6 +702,7 @@ class AboutPage(QWidget, RequireNameMixin):
         super().__init__()
         self.page_name = None
 
+        self.set_page_name()
         self.init_ui()
 
     def set_page_name(self):
