@@ -138,7 +138,7 @@ class AdapterManager(QObject):
 
     def terminate_custom_process(self, process_info):
         # todo: do not terminate self
-        self.terminate_custom_process_adapter.trigger_run.emit(process_info)
+        self.terminate_custom_process_adapter.trigger_run.emit(process_info, self.runtime_status.pid)
 
 
 class BaseAdapterInterface:
@@ -298,14 +298,13 @@ class UpdateAdapter(QObject, BaseAdapterInterface):
 
 
 class TerminateCustomProcessAdapter(QObject):
-    change = Signal()
-    trigger_run = Signal(str)
+    change = Signal(object)
+    trigger_run = Signal(str, int)
 
     MAX_PID = 2_147_483_647
 
     def __init__(self, logic, terminate_pid_adapter, terminate_process_adapter):
         super().__init__()
-        # self.running = None
         self.logic = logic
         self.terminate_pid_adapter = terminate_pid_adapter
         self.terminate_process_adapter = terminate_process_adapter
@@ -313,21 +312,13 @@ class TerminateCustomProcessAdapter(QObject):
         self.start()
 
     def start(self):
-        # self.running = False
         self.trigger_run.connect(self.run_task)
 
-    # def stop(self):
-    #     self.running = False
-
-    def run_task(self, process_info: str):
-        # if self.is_running():
-        #     print('another getting update is running, exit')
-        #     return
-        # self.running = True
+    def run_task(self, process_info: str, current_pid):
         if self.is_valid_pid(process_info):
             process_pid = int(process_info)
             if self.pid_exists(process_pid):
-                self.terminate_pid(process_pid)
+                self.terminate_pid(process_pid, current_pid)
             else:
                 process_name = self.handle_process_name(process_info)
                 self.terminate_process(process_name)
@@ -335,7 +326,6 @@ class TerminateCustomProcessAdapter(QObject):
         else:
             process_name = self.handle_process_name(process_info)
             self.terminate_process(process_name)
-        # self.stop()
 
     def is_valid_pid(self, s: str) -> bool:
         if not s.isdigit():
@@ -349,8 +339,12 @@ class TerminateCustomProcessAdapter(QObject):
     def pid_exists(self, pid: int):
         return self.logic.pid_exists(pid) == PidStatus.EXISTS
 
-    def terminate_pid(self, pid):
-        self.terminate_pid_adapter.run_async((pid, ))
+    def terminate_pid(self, pid, current_pid: int):
+        if not pid == current_pid:
+            self.terminate_pid_adapter.run_async((pid, ))
+        else:
+            self.change.emit('Cannot terminate the current process')
+            print('Cannot terminate the current process')
 
     def terminate_process(self, process_name: str):
         self.terminate_process_adapter.run_async(process_name)
@@ -361,10 +355,6 @@ class TerminateCustomProcessAdapter(QObject):
         if not process_name.lower().endswith(".exe"):
             return process_name + ".exe"
         return process_name
-
-    # @staticmethod
-    # def is_running():
-    #     return self.running
 
 
 # ################
@@ -415,59 +405,6 @@ class TerminateProcessAdapter(QObject):
     def run_sync(self, process_name):
         pids = self.logic.get_pid_from_process_name(process_name)
         self.pid_adapter.run_sync(pids)
-
-
-##########################
-
-
-# WILL BE DELETED NEXT VERSION
-# class TerminateProcessAdapter(QObject):
-#     change = Signal()
-#     trigger_run = Signal(str)
-#
-#     def __init__(self, logic, terminate_pid_adapter):
-#         super().__init__()
-#         self.running = None
-#         self.logic = logic
-#         self.last_result = None
-#         self.terminate_pid_adapter = terminate_pid_adapter
-#
-#     def start(self):
-#         self.trigger_run.connect(self.run_task)
-#
-#     def stop(self):
-#         self.running = False
-#
-#     def run_task(self, process_name=build_config.E_CLASSROOM_PROGRAM_NAME):
-#         self.running = True
-#         pids = self.logic.get_pid_from_process_name(process_name)
-#         self.terminate_pid_adapter.trigger_run.emit(pids)
-#         self.stop()
-#
-#
-# class TerminatePIDAdapter(QObject):
-#     change = Signal()
-#     trigger_run = Signal(tuple)
-#
-#     def __init__(self, logic):
-#         super().__init__()
-#         self.running = None
-#         self.logic = logic
-#         self.last_result = None
-#
-#     def start(self):
-#         self.trigger_run.connect(self.run_task)
-#
-#     def stop(self):
-#         self.running = False
-#
-#     def run_task(self, pids: tuple):
-#         if pids is None:
-#             print(f'PID not found')
-#             return
-#
-#         for pid in pids:
-#             self.logic.terminate_process(pid)
 
 
 class StartStudentmainAdapter:
