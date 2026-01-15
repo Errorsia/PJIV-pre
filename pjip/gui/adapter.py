@@ -44,7 +44,8 @@ class AdapterManager(QObject):
         self.terminate_pid_adapter = TerminatePIDAdapter(self.logic, self.runtime_status.pid, self.terminate_threadpool)
         # self.lifelong_adapters.append(self.terminate_pid_adapter)
 
-        self.terminate_process_adapter = TerminateProcessAdapter(self.logic, self.terminate_pid_adapter)
+        self.terminate_process_adapter = TerminateProcessAdapter(self.logic, self.runtime_status.current_process_name,
+                                                                 self.terminate_pid_adapter)
         # self.lifelong_adapters.append(self.terminate_process_adapter)
 
         self.run_taskmgr_adapter = RunTaskmgrAdapter(self.logic)
@@ -402,16 +403,26 @@ class TerminateProcessAdapter(QObject):
     """Terminate process, rely on PID adapter"""
     change = Signal(str)
 
-    def __init__(self, logic, pid_adapter: TerminatePIDAdapter, /):
+    def __init__(self, logic, current_process_name, pid_adapter: TerminatePIDAdapter, /):
         super().__init__()
         self.logic = logic
         self.pid_adapter = pid_adapter
+        self.current_process_name = current_process_name
 
     def run_async(self, process_name):
+        if process_name == self.current_process_name:
+            self.change.emit('Cannot terminate the current process')
+            print('Cannot terminate the current process')
+            return
+
         pids = self.logic.get_pid_from_process_name(process_name)
         self.pid_adapter.run_async(pids)
 
     def run_sync(self, process_name):
+        if process_name == self.current_process_name:
+            self.change.emit('Cannot terminate the current process')
+            return
+
         pids = self.logic.get_pid_from_process_name(process_name)
         self.pid_adapter.run_sync(pids)
 
