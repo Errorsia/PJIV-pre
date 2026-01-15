@@ -5,10 +5,10 @@ import pywintypes
 
 
 class ServiceManager:
-    def __init__(self, logic, gui):
+    def __init__(self, logic, runtime_status):
         super().__init__()
         self.logic = logic
-        self.gui = gui
+        self.runtime_status = runtime_status
         self.services = []
 
         self.threads = {}
@@ -20,7 +20,7 @@ class ServiceManager:
         self.start_all()
 
     def init_hwnd(self):
-        self.hwnd = int(self.gui.winId())
+        self.hwnd = int(self.runtime_status.window_handle)
         print(f'Hwnd: {self.hwnd}')
 
     def init_services(self):

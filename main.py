@@ -25,7 +25,7 @@ class JIVMain:
 
         # self.logic.after_ui_launched(self.gui.winId())
 
-        self.services = service.ServiceManager(self.logic, self.gui)
+        self.services = service.ServiceManager(self.logic, self.runtime_status)
 
         self.gui.close_event.connect(self.handle_close_event)
 
