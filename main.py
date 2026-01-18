@@ -9,11 +9,11 @@ from pjip.gui import gui
 from pjip.config import build_config
 
 
-class JIVMain:
+class PJIPMain:
     def __init__(self):
         self.app = QApplication(sys.argv)
 
-        self.logic = logic.JIVLogic(build_config)
+        self.logic = logic.PJIPLogic(build_config)
         self.runtime_status = RuntimeStatus(self.logic)
         self.gui = gui.MainWindow()
         self.adapters = adapter.AdapterManager(self.logic, self.gui, self.runtime_status)
@@ -39,4 +39,4 @@ class JIVMain:
 
 
 if __name__ == "__main__":
-    JIVMain()
+    PJIPMain()

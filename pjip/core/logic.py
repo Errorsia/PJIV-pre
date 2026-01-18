@@ -24,7 +24,7 @@ from pjip.core.enums import UpdateState
 from pjip.core.enums import PidStatus
 
 
-class JIVLogic:
+class PJIPLogic:
     def __init__(self, config):
         self.authority_admin = None
         self.system_info = None
