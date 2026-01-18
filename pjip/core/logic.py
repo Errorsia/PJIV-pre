@@ -154,11 +154,11 @@ class JIVLogic:
                     })
         return hotfixes
 
-    # def read_registry_value(self, key_path, value_name):
-    #     result = self.read_registry(key_path, value_name)
-    #     if result is None:
-    #         return None
-    #     return result[0]
+    def read_registry_value(self, key_path, value_name):
+        result = self.read_registry(key_path, value_name)
+        if result is None:
+            return None
+        return result[0]
 
     @staticmethod
     def read_registry(key_path, value_name):
@@ -185,8 +185,9 @@ class JIVLogic:
 
         return None
 
+    # WILL BE REMOVED IN THE NEXT VERSION
     @staticmethod
-    def read_registry_value(key_path, value_name):
+    def read_registry_value_old(key_path, value_name):
         """
         Read a registry value from HKEY_LOCAL_MACHINE.
 
