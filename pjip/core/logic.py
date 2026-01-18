@@ -645,6 +645,43 @@ class PJIPLogic:
 
         return buf
 
+    @staticmethod
+    def extract_utf16_segment(buf: bytes) -> str:
+        """
+        Automatically locate the start and end of a UTF‑16LE-encoded substring
+        inside a larger byte buffer, and decode only that substring.
+
+        This is useful when the buffer contains garbage bytes before/after
+        the actual UTF‑16LE password, as seen in the Mythware Knock/knock1 data.
+        """
+        n = len(buf)
+
+        # 1. Locate the start: the first occurrence of a UTF‑16LE pattern [xx 00]
+        start = None
+        for i in range(n - 1):
+            if buf[i + 1] == 0:  # high byte == 0 → likely UTF‑16LE character
+                start = i
+                break
+
+        if start is None:
+            return ""
+
+        # 2. Locate the end: the first UTF‑16LE null terminator [00 00]
+        end = None
+        for i in range(start, n - 1, 2):  # scan in UTF‑16LE 2‑byte steps
+            if buf[i] == 0 and buf[i + 1] == 0:
+                end = i + 2  # include the terminator
+                break
+
+        if end is None:
+            end = n  # fallback: decode until the end of the buffer
+
+        # 3. Extract the UTF‑16LE byte slice
+        segment = buf[start:end]
+
+        # 4. Decode the UTF‑16LE substring and strip trailing nulls
+        return segment.decode("utf-16le").rstrip("\x00")
+
 
 class NativeTerminator:
     PROCESS_TERMINATE = 0x0001
