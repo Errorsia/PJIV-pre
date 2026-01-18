@@ -690,6 +690,34 @@ class PJIPLogic:
         # 4. Decode the UTF‑16LE substring and strip trailing nulls
         return segment.decode("utf-16le").rstrip("\x00")
 
+    @staticmethod
+    def extract_cpp_style(buf: bytes) -> str:
+        """
+        A corrected version of the original C++ extraction logic.
+
+        This version fixes the starting index bug while preserving
+        the intended UTF‑16LE scanning behavior:
+        - Scan from i = 0.
+        - Look for UTF‑16LE patterns [low_byte][0x00].
+        - Stop when encountering [0x00][0x00].
+        """
+        out = []
+        n = len(buf)
+
+        # Scan from the beginning instead of skipping the first byte.
+        for i in range(0, n - 1):
+            # Check for UTF‑16LE high byte = 0x00
+            if buf[i + 1] == 0:
+                ch = buf[i]
+
+                # Stop at UTF‑16LE null terminator [0x00 0x00]
+                if ch == 0:
+                    break
+
+                out.append(ch)
+
+        return bytes(out).decode("ascii", errors="ignore")
+
 
 class NativeTerminator:
     PROCESS_TERMINATE = 0x0001
