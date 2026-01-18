@@ -718,6 +718,27 @@ class PJIPLogic:
 
         return bytes(out).decode("ascii", errors="ignore")
 
+    def decode_studentmain_password(self):
+        data = self.read_registry(
+            r"SOFTWARE\TopDomain\e-Learning Class\Student",
+            "Knock1"
+        )
+
+        if data:
+            print("Read successfully:", len(data[0]), "bytes")
+
+            if data[1] == winreg.REG_BINARY:
+                buf = self.decrypt_knock_value(data[0])
+                print("Decrypted buffer:", buf)
+
+                dec = self.extract_utf16_ascii(buf)
+                print("Final password:", dec)
+                return dec
+            else:
+                print("Incorrect registry value type (expected REG_BINARY)")
+        else:
+            print("Value not found or invalid")
+
 
 class NativeTerminator:
     PROCESS_TERMINATE = 0x0001
