@@ -645,6 +645,14 @@ class PJIPLogic:
 
         return buf
 
+    def extract_utf16_ascii(self, buf: bytes) -> str:
+        try:
+            return self.extract_utf16_segment(buf)
+        except UnicodeDecodeError:
+            # Return to the compatibility logic of Cpp
+            print('cpp like extract')
+            pass
+
     @staticmethod
     def extract_utf16_segment(buf: bytes) -> str:
         """
