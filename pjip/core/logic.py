@@ -53,7 +53,6 @@ class PJIPLogic:
         value_name = "TargetDirectory"
         self.studentmain_directory = self.read_registry_value(key_path, value_name)
         self.studentmain_path = os.path.join(self.studentmain_directory, "studentmain.exe")
-        print(self.studentmain_path)
 
         self.nt_terminate_process = NativeTerminator()
 

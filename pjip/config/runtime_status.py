@@ -10,6 +10,7 @@ class RuntimeStatus:
         self.get_current_pid()
         self.get_current_process_name()
         self.get_argv()
+        self.get_studentmain_info()
 
     def get_current_pid(self):
         self.pid = self.logic.get_current_pid()
@@ -22,6 +23,11 @@ class RuntimeStatus:
     def get_argv(self):
         self.argv = self.logic.get_argv()
         print(self.argv)
+
+    def get_studentmain_info(self):
+        self.studentmain_directory = self.logic.studentmain_directory
+        self.studentmain_path = self.logic.studentmain_path
+        print(self.studentmain_path)
 
     def ui_launched(self, gui):
         self.gui = gui
