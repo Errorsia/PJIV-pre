@@ -93,6 +93,9 @@ class AdapterManager(QObject):
             adapter.deleteLater()
             thread.deleteLater()
 
+    def ui_launched(self):
+        pass
+
     def wait_for_pools(self):
         self.terminate_threadpool.waitForDone()
 
@@ -140,6 +143,9 @@ class AdapterManager(QObject):
 
     def terminate_custom_process(self, process_info):
         self.terminate_custom_process_adapter.trigger_run.emit(process_info)
+
+    def get_studentmain_password(self):
+        pass
 
 
 class BaseAdapterInterface:
@@ -468,3 +474,12 @@ class CleanIFEODebuggersAdapter:
 
     def start(self):
         self.logic.clean_ifeo_debuggers()
+
+
+class GetStudentmainPasswordAdapter:
+    def __init__(self, logic):
+        super().__init__()
+        self.logic = logic
+
+    def start(self):
+        self.logic.decode_studentmain_password()
