@@ -541,7 +541,7 @@ class FunctionsPage(QWidget, RequireNameMixin):
             }
         """)
         self.studentmain_pwd_btn.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
-        self.studentmain_pwd_btn.clicked.connect(self.custom_terminate)
+        self.studentmain_pwd_btn.clicked.connect(lambda : print('studentmain_pwd_btn clicked'))
 
         studentmain_pwd_box_layout.addWidget(self.custom_process_input)
         studentmain_pwd_box_layout.addWidget(self.studentmain_pwd_btn)
