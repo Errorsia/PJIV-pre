@@ -241,7 +241,7 @@ class GetStudentmainPasswordAdapter(QObject, BaseAdapterInterface):
 
     def start(self):
         self.timer.start()
-        # QTimer.singleShot(0, self.check_state)
+        QTimer.singleShot(0, self.run_task)
 
     def stop(self):
         self.timer.stop()
