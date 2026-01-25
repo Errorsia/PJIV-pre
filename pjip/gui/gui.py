@@ -1,4 +1,4 @@
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import Qt, Signal, QTimer
 from PySide6.QtWidgets import QMainWindow, QWidget, QLabel, QPushButton, QGridLayout, QVBoxLayout, QHBoxLayout, \
     QSizePolicy, QStackedWidget, QLayout, QButtonGroup, QRadioButton, QLineEdit
 
@@ -581,6 +581,8 @@ class FunctionsPage(QWidget, RequireNameMixin):
     def copy_studentmain_password_to_clipboard(self):
         self.adapter.copy_studentmain_password_to_clipboard()
         self.studentmain_pwd_btn.setText('Copied')
+
+        QTimer.singleShot(5000, lambda: self.studentmain_pwd_btn.setText(' Copy '))
 
 
 class SettingsPage(QWidget, RequireNameMixin):
