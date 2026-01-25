@@ -36,7 +36,7 @@ class AdapterManager(QObject):
     def init_workers(self):
         self.lifelong_adapters.append(MonitorAdapter(self.logic))
         self.lifelong_adapters.append(SuspendMonitorAdapter(self.logic))
-        self.lifelong_adapters.append(GetStudentmainPasswordAdapter(self.logic))
+        self.lifelong_adapters.append(GetStudentmainPasswordAdapter(self.logic, self.runtime_status))
         # self.lifelong_adapters.append(DatabaseAdapter(logic, 2000))
         # self.lifelong_adapters.append(NetworkAdapter(logic, 5000))
 
@@ -147,6 +147,9 @@ class AdapterManager(QObject):
     def terminate_custom_process(self, process_info):
         self.terminate_custom_process_adapter.trigger_run.emit(process_info)
 
+    def copy_studentmain_password_to_clipboard(self):
+        self.copy_to_clipboard(self.runtime_status.studentmain_password)
+
     def copy_to_clipboard(self, content):
         self.copy_to_clipboard_adapter.copy_to_clipboard(content)
 
@@ -233,13 +236,14 @@ class SuspendMonitorAdapter(QObject, BaseAdapterInterface):
 class GetStudentmainPasswordAdapter(QObject, BaseAdapterInterface):
     change = Signal(SuspendState)
 
-    def __init__(self, logic):
+    def __init__(self, logic, runtime_status):
         super().__init__()
         self.logic = logic
         self.timer = QTimer(self)
         self.timer.setInterval(30000)
         self.timer.timeout.connect(self.run_task)
         self.last_result = None
+        self.runtime_status = runtime_status
 
     def start(self):
         self.timer.start()
@@ -252,6 +256,7 @@ class GetStudentmainPasswordAdapter(QObject, BaseAdapterInterface):
         state = self.get_studentmain_password()
         if state != self.last_result:
             self.last_result = state
+            self.runtime_status.update_studentmain_password(state)
             self.change.emit(state)
 
     def get_studentmain_password(self):
