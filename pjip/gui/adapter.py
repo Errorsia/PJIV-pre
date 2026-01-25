@@ -462,7 +462,10 @@ class TerminateProcessAdapter(QObject):
             return
 
         pids = self.logic.get_pid_from_process_name(process_name)
-        self.pid_adapter.run_async(pids)
+        if pids:
+            self.pid_adapter.run_async(pids)
+        else:
+            print(f'Invalid pids: {pids}')
 
     def run_sync(self, process_name):
         if process_name == self.current_process_name:
