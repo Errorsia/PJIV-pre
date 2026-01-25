@@ -266,7 +266,6 @@ class GetStudentmainPasswordAdapter(QObject, BaseAdapterInterface):
         return self.logic.decode_studentmain_password()
 
 
-
 class RunTaskmgrAdapter(QObject):
     trigger_run = Signal()
     change = Signal()
@@ -517,6 +516,7 @@ class CleanIFEODebuggersAdapter:
 
     def start(self):
         self.logic.clean_ifeo_debuggers()
+
 
 class CopyToClipboardAdapter:
     def __init__(self):

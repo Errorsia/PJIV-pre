@@ -25,7 +25,7 @@ class ServiceManager:
 
     def init_services(self):
         self.services.append(TopMostService(50, self.logic, self.hwnd))
-        self.services.append(HideService(500, self.logic, self.hwnd))
+        self.services.append(HideService(1000, self.logic, self.hwnd))
 
     def start_all(self):
         for service in self.services:
