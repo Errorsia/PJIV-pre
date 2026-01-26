@@ -378,11 +378,13 @@ class PJIPLogic:
             h_process = win32api.OpenProcess(win32con.PROCESS_TERMINATE, False, pid)
         except pywintypes.error as err: # type: ignore
             print(err)
+        except Exception as err:
+            print(err)
 
         print(f'Value of h_process: {h_process}')
         if not h_process:
             # noinspection PyUnresolvedReferences
-            print(f"OpenProcess failed,  error={win32api.GetLastError()}")
+            print(f"OpenProcess failed, error={win32api.GetLastError()}")
 
             # noinspection PyUnresolvedReferences
             raise RuntimeError(f"OpenProcess failed, error={win32api.GetLastError()}")

@@ -412,7 +412,10 @@ class TerminatePIDTask(QRunnable):
             print("PID not found")
             return
         for pid in self.pids:
-            self.logic.terminate_process(pid)
+            try:
+                self.logic.terminate_process(pid)
+            except RuntimeError as err:
+                print(err)
 
 
 class TerminatePIDAdapter(QObject):
