@@ -371,28 +371,24 @@ class PJIPLogic:
             return PidStatus.ERROR
 
     @staticmethod
-    def terminate_process(pid, exit_code = 1):
+    def terminate_process(pid: int, exit_code = 1):
         h_process = None
         try:
             # noinspection PyUnresolvedReferences
             h_process = win32api.OpenProcess(win32con.PROCESS_TERMINATE, False, pid)
-        except pywintypes.error as err:
+        except pywintypes.error as err: # type: ignore
             print(err)
 
-
+        print(f'Value of h_process: {h_process}')
         if not h_process:
             # noinspection PyUnresolvedReferences
-            print(f"OpenProcess failed, value of h_process: {h_process}, error={win32api.GetLastError()}")
+            print(f"OpenProcess failed,  error={win32api.GetLastError()}")
 
             # noinspection PyUnresolvedReferences
             raise RuntimeError(f"OpenProcess failed, error={win32api.GetLastError()}")
         else:
             # noinspection PyUnresolvedReferences
             win32api.TerminateProcess(h_process, exit_code)
-
-        # if not success:
-        # noinspection PyUnresolvedReferences
-        # raise Exception(f"TerminateProcess failed, error={win32api.GetLastError()}")
 
         # h_process = win32api.OpenProcess(win32con.PROCESS_TERMINATE | win32con.SYNCHRONIZE, False, pid)
         # if not h_process:
