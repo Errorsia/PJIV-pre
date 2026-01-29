@@ -23,10 +23,10 @@ class PollingManager: # QObject
 
     def stop(self):
         for adapter, thread in self.threads:
+            adapter.deleteLater()
             adapter.stop()
             thread.quit()
             thread.wait()
-            adapter.deleteLater()
             thread.deleteLater()
 
     def get_adapter(self, cls):
