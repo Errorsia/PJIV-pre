@@ -290,6 +290,12 @@ class TerminatePIDAdapter(QObject):
         if other_pids:
             TerminatePIDTask(self.logic, other_pids).run()
 
+    @staticmethod
+    def format_pids(pids: int | Iterable[int]):
+        if isinstance(pids, int):
+            return (pids,)
+        return tuple(pids)
+
     def split_current_pid(self, pids):
         """Check if pids contains current_pid and return the rest."""
         if self.current_pid in pids:
