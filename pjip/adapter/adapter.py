@@ -1,5 +1,6 @@
 # adapter.py
 # from threading import Thread
+from typing import Iterable
 
 from PySide6.QtCore import QObject, Signal, QTimer, QThread, QRunnable, QThreadPool
 from PySide6.QtGui import QGuiApplication
@@ -280,13 +281,15 @@ class TerminatePIDAdapter(QObject):
         self.pool = pool or QThreadPool.globalInstance()
 
     def run_async(self, pids):
-        other_pids = self.split_current_pid(pids)
+        valid_pids = self.format_pids(pids)
+        other_pids = self.split_current_pid(valid_pids)
         if other_pids:
             task = TerminatePIDTask(self.logic, other_pids)
             self.pool.start(task)
 
     def run_sync(self, pids):
-        other_pids = self.split_current_pid(pids)
+        valid_pids = self.format_pids(pids)
+        other_pids = self.split_current_pid(valid_pids)
         if other_pids:
             TerminatePIDTask(self.logic, other_pids).run()
 
