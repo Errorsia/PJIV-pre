@@ -8,7 +8,8 @@ from PySide6.QtGui import QGuiApplication
 from pjip.config import build_config
 from pjip.core.enums import PidStatus
 
-from .polling import MonitorAdapter, SuspendMonitorAdapter, GetStudentmainPasswordAdapter, UpdateAdapter
+from .polling import MonitorAdapter, SuspendMonitorAdapter, GetStudentmainPasswordAdapter, UpdateAdapter, \
+    RunTaskmgrAdapter
 from .polling_manager import PollingManager
 
 
@@ -74,8 +75,9 @@ class AdapterManager(QObject):
         #
         # thread.started.connect(self.run_taskmgr_adapter.start)
 
-        self.run_taskmgr_adapter.change.connect(lambda result, w=self.run_taskmgr_adapter:
-                                                self.ui_change.emit(type(w).__name__, result))
+        # WHY CAN IT RUN
+        # self.run_taskmgr_adapter.change.connect(lambda result, w=self.run_taskmgr_adapter:
+        #                                         self.ui_change.emit(type(w).__name__, result))
 
         # self.lifelong_objects[self.run_taskmgr_adapter] = thread
 
@@ -160,51 +162,6 @@ class AdapterManager(QObject):
 
     def copy_to_clipboard(self, content):
         self.copy_to_clipboard_adapter.copy_to_clipboard(content)
-
-
-class RunTaskmgrAdapter(QObject):
-    trigger_run = Signal()
-    change = Signal()
-
-    def __init__(self, logic):
-        super().__init__()
-        self.running = None
-        self.cnt = None
-        self.timer = None
-        self.logic = logic
-
-    def start(self):
-        self.running = False
-        self.cnt = 0
-        self.timer = QTimer(self)
-
-        self.timer.setInterval(100)
-        self.timer.timeout.connect(self.is_taskmgr_alive)
-
-        self.trigger_run.connect(self.run_task)
-
-    def run_task(self):
-        self.cnt = 0
-        self.running = True
-        self.logic.start_file("taskmgr")
-        print("adapter.start called")
-        self.timer.start()
-
-    def is_taskmgr_alive(self):
-        self.cnt += 1
-        if self.logic.get_process_state('taskmgr.exe'):
-            self.logic.top_taskmgr()
-            self.stop()
-        if self.cnt >= 30:  # 3s time out
-            print("Find taskmgr Time out")
-            self.stop()
-
-    def stop(self):
-        self.running = False
-        self.timer.stop()
-
-    def is_running(self):
-        return self.running
 
 
 class TerminateCustomProcessAdapter(QObject):
