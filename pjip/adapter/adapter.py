@@ -11,6 +11,7 @@ from pjip.core.enums import PidStatus
 from .polling import MonitorAdapter, SuspendMonitorAdapter, GetStudentmainPasswordAdapter, UpdateAdapter, \
     RunTaskmgrAdapter
 from .polling_manager import PollingManager
+from ..runner import TerminatePIDTask
 
 
 class AdapterManager(QObject):
@@ -221,22 +222,6 @@ class TerminateCustomProcessAdapter(QObject):
 
 
 # ################
-
-class TerminatePIDTask(QRunnable):
-    def __init__(self, logic, pids):
-        super().__init__()
-        self.logic = logic
-        self.pids = pids
-
-    def run(self):
-        if not self.pids:
-            print("PID not found")
-            return
-        for pid in self.pids:
-            try:
-                self.logic.terminate_process(pid)
-            except RuntimeError as err:
-                print(err)
 
 
 class TerminatePIDAdapter(QObject):
