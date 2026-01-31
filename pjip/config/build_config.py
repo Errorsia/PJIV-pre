@@ -26,7 +26,8 @@ WIN_FILEVER = (
 
 FULL_VERSION = f"{PROJECT_NAME} v{VERSION}"
 
-UPDATE_URL = "https://api.github.com/repos/Errorsia/PJIV-pre/releases/latest"
+# UPDATE_URL = "https://api.github.com/repos/Errorsia/PJIV-pre/releases/latest"
+UPDATE_URL = "https://api.github.com/repos/Errorsia/PJIP/releases/latest"
 UPDATE_URLS = tuple(UPDATE_URL)
 
 E_CLASSROOM_NAME = 'studentmain'
