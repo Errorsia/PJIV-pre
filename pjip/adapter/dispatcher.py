@@ -15,14 +15,18 @@ class TaskDispatcher(QObject):
         self.daemon_pool = QThreadPool()
         self.daemon_pool.setMaxThreadCount(max_threads)
 
-    def submit(self, runnable, priority=0):
+    def submit(self, runnable, priority=0, daemon = False):
         """
         runnable: QRunnable
         priority: int (higher = more important)
         """
-        self.pool.start(runnable, priority)
+        if daemon:
+            self.daemon_pool.start(runnable, priority)
+        else:
+            self.pool.start(runnable, priority)
 
-    def injected_submit(self, runnable, priority=0):
+    def injected_submit(self, runnable, priority=0, daemon = False):
+        pool = self.daemon_pool if daemon else self.pool
         runnable.callback = lambda v: self.task_return.emit(v)
         runnable.error_callback = lambda e: self.task_error.emit(e)
 
@@ -32,7 +36,7 @@ class TaskDispatcher(QObject):
         if hasattr(runnable, "external_callback"):
             runnable.external_callback = lambda v: self.task_external_action.emit(v)
 
-        self.pool.start(runnable, priority)
+        pool.start(runnable, priority)
 
     def submit_daemon(self, runnable, priority=0):
         """
