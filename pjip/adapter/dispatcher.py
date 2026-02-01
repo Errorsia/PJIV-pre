@@ -28,8 +28,11 @@ class TaskDispatcher(QObject):
 
     def injected_submit(self, runnable, priority=0, daemon=False):
         pool = self.daemon_pool if daemon else self.pool
-        runnable.callback = lambda v: self.task_return.emit(v)
+        runnable.finished_callback = lambda v: self.task_finished.emit(v)
         runnable.error_callback = lambda e: self.task_error.emit(e)
+
+        if hasattr(runnable, "callback"):
+            runnable.callback = lambda v: self.task_return.emit(v)
 
         if hasattr(runnable, "middle_callback"):
             runnable.middle_callback = lambda v: self.task_middle.emit(v)
