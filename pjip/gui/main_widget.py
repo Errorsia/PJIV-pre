@@ -3,6 +3,7 @@ from PySide6.QtWidgets import QWidget, QLabel, QPushButton, QGridLayout, QVBoxLa
     QSizePolicy, QStackedWidget, QLayout, QButtonGroup, QRadioButton, QLineEdit
 
 from pjip.core.enums import UpdateState
+from .pages import ToolPage
 
 
 class MainWidget(QWidget):
